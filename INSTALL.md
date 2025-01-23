@@ -181,7 +181,7 @@ Click the *Save* button to save the new URLs.
 
 ![Client URL](images/clientUrl.png)
 
-Repeat the same process with the `cbioportal_client_export.json` file.  The credentials will later be used as `KEYCLOAK_SECRET_FHIRSPARK` in step 3.
+Repeat the same process with the `fhirspark_client_export.json` file.  The credentials will later be used as `KEYCLOAK_SECRET_FHIRSPARK` in step 3.
 
 #### Exporting client roles
 
