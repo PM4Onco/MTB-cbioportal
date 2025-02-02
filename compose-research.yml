@@ -145,7 +145,7 @@ services:
     networks:
       - cbioportal_net
   genomenexus_db:
-    image: docker.io/genomenexus/gn-mongo:0.31
+    image: docker.io/genomenexus/gn-mongo:0.32
     volumes:
       - genomenexus_data:/bitnami/mongodb
     environment:
