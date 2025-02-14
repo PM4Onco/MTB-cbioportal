@@ -40,7 +40,7 @@ RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*-exec.jar)
 WORKDIR /cbioportal/core
 RUN mvn -DskipTests install package
 
-FROM docker.io/alpine:3.20.3
+FROM docker.io/alpine:3.21.3
 
 # create user for not running image with root privileges
 RUN addgroup -g 1001 -S cbioportal && adduser -u 1001 -S cbioportal -G cbioportal
