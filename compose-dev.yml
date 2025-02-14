@@ -77,7 +77,7 @@ services:
     ]
   cbioportal_database:
     restart: unless-stopped
-    image: docker.io/mariadb:11.5.2
+    image: docker.io/mariadb:11.7.2
     container_name: cbioportal_database_container
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-P@ssword1}
