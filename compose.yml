@@ -122,7 +122,7 @@ services:
       - cbioportal_net
   hapiserver:
     restart: unless-stopped
-    image: docker.io/hapiproject/hapi:v7.6.0-tomcat
+    image: docker.io/hapiproject/hapi:v8.0.0-tomcat
     container_name: cbioportal_fhirspark_hapiserver
     depends_on:
       - hapi-postgres
