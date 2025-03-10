@@ -2,7 +2,7 @@ services:
   cbioportal:
     image: ghcr.io/buschlab/cbioportal:${RELEASE:-latest}
     volumes:
-     - ./config/frontend.json:/cbioportal/frontend.json:Z
+     - ./../config/frontend.json:/cbioportal/frontend.json:Z
     command: [
       "/usr/bin/java",
       "-Xms2g",
@@ -46,12 +46,12 @@ services:
     ]
   cbioproxy:
     volumes:
-      - ./services/cbioproxy/cbioportal.conf:/cbioportal.conf:Z
-      - ./services/cbioproxy/lua_auth_config.lua:/etc/nginx/conf.d/lua_auth_config.lua:Z
-      - ./services/cbioproxy/lua_login_config.lua:/etc/nginx/conf.d/lua_login_config.lua:Z
-      - ./config/attributes.json:/attributes.json:Z
-      - ./data/tumorTypes.json:/tumorTypes.json:Z
-      - ./config/keycloak.pem:/keycloak.pem:z
+      - ./../services/cbioproxy/cbioportal.conf:/cbioportal.conf:Z
+      - ./../services/cbioproxy/lua_auth_config.lua:/etc/nginx/conf.d/lua_auth_config.lua:Z
+      - ./../services/cbioproxy/lua_login_config.lua:/etc/nginx/conf.d/lua_login_config.lua:Z
+      - ./../config/attributes.json:/attributes.json:Z
+      - ./../data/tumorTypes.json:/tumorTypes.json:Z
+      - ./../config/keycloak.pem:/keycloak.pem:z
     environment:
       KEYCLOAK_REALM: ${KEYCLOAK_REALM:-}
       KEYCLOAK_CLIENT_FHIRSPARK: ${KEYCLOAK_CLIENT_FHIRSPARK:-fhirspark}
@@ -70,8 +70,8 @@ services:
       FHIRSPARK_PORTALURL: http://cbioportal:8080/
       FHIRSPARK_LOGINREQUIRED: ${LOGINREQUIRED:-false}
     volumes:
-      - ./data/drugs.json:/drugs.json:Z
-      - ./data/hgnc.csv:/hgnc.csv:Z
+      - ./../data/drugs.json:/drugs.json:Z
+      - ./../data/hgnc.csv:/hgnc.csv:Z
     networks:
       - cbioportal_net
   hapiserver:

@@ -1,4 +1,4 @@
 include:
   - path:
       - ./compose/base.yml
-      - ./compose/${FLAVOR:-care}.yml
+      - ./compose/${FLAVOR:-mtb}.yml

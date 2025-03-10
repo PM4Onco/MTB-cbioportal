@@ -7,11 +7,11 @@ services:
       HTTP_PROXY: "http://${HTTPS_PROXY_HOST}:${HTTPS_PROXY_PORT}"
       NO_PROXY: "cbioportal"
     volumes:
-     - ./study:/study/:z
-     - ./config/application.properties:/cbioportal/application.properties:Z
-     - ./config/security.properties:/cbioportal/security.properties:Z
-     - ./config/${LOGO:-pm4onco.png}:/cbioportal-webapp/webapp/images/${LOGO:-pm4onco.png}:Z
-     - ./config/cacerts:/etc/ssl/certs/java/cacerts:Z
+     - ./../study:/study/:z
+     - ./../config/application.properties:/cbioportal/application.properties:Z
+     - ./../config/security.properties:/cbioportal/security.properties:Z
+     - ./../config/${LOGO:-pm4onco.png}:/cbioportal-webapp/webapp/images/${LOGO:-pm4onco.png}:Z
+     - ./../config/cacerts:/etc/ssl/certs/java/cacerts:Z
      - cbioportal_portalinfo:/cbioportal/portalinfo:z
     depends_on:
      - cbioportal_database
@@ -30,9 +30,9 @@ services:
     security_opt:
       - seccomp:unconfined
     volumes:
-     - ./data/cgds.sql:/docker-entrypoint-initdb.d/cgds.sql:Z
-     - ./data/seed-cbioportal_hg19_hg38_v2.13.1.sql.gz:/docker-entrypoint-initdb.d/seed.sql.gz:Z
-     - ./data/tableExtension.sql:/docker-entrypoint-initdb.d/tableExtension.sql:Z
+     - ./../data/cgds.sql:/docker-entrypoint-initdb.d/cgds.sql:Z
+     - ./../data/seed-cbioportal_hg19_hg38_v2.13.1.sql.gz:/docker-entrypoint-initdb.d/seed.sql.gz:Z
+     - ./../data/tableExtension.sql:/docker-entrypoint-initdb.d/tableExtension.sql:Z
      - cbioportal_data:/var/lib/mysql
     command:
      - --character-set-server=latin1
@@ -70,9 +70,9 @@ services:
       NGINX_LOGINREQUIRED: ${LOGINREQUIRED:-false}
       PORT: ${PORT:-8080}
     volumes:
-      - ./services/cbioproxy/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:Z
-      - ./services/cbioproxy/lua_resource_config.lua:/etc/nginx/conf.d/lua_resource_config.lua:Z
-      - ./reports:/usr/share/reports:Z
+      - ./../services/cbioproxy/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:Z
+      - ./../services/cbioproxy/lua_resource_config.lua:/etc/nginx/conf.d/lua_resource_config.lua:Z
+      - ./../reports:/usr/share/reports:Z
     ports:
       - "${PORT:-8080}:8080"
     depends_on:
@@ -122,7 +122,7 @@ services:
     restart: unless-stopped
     container_name: ensembl_rest_container
     volumes:
-      - ./config/ensembl_rest.conf:/opt/vep/src/ensembl-rest/ensembl_rest.conf:Z
+      - ./../config/ensembl_rest.conf:/opt/vep/src/ensembl-rest/ensembl_rest.conf:Z
     networks:
       - cbioportal_net
     depends_on:
