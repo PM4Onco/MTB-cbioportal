@@ -109,7 +109,7 @@ services:
       - cbioportal_net
   hapiserver:
     restart: unless-stopped
-    image: docker.io/hapiproject/hapi:v7.4.0-tomcat
+    image: docker.io/hapiproject/hapi:v7.6.0-tomcat
     container_name: cbioportal_fhirspark_hapiserver
     ports:
       - "8082:8080"

@@ -75,4 +75,4 @@ The only part that needs a database backup is the HAPI FHIR server. For that ple
 Debugging of the backend can be done by attaching a debugger to it. For VisualStudio Code the MSKCC provides an [example configuration](https://github.com/cBioPortal/cbioportal/blob/master/README.md#%EF%B8%8F%EF%B8%8F-debugging).
 
 ## License
-All code from the Data Sharing Framework is published under the [GNU AGPL v3 License](./LICENSE).
+All code from MTB-cBioPortal is published under the [GNU AGPL v3 License](./LICENSE).
