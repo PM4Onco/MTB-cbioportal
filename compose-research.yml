@@ -3,7 +3,7 @@ version: '3'
 services:
   cbioportal:
     restart: unless-stopped
-    image: docker.io/cbioportal/cbioportal:6.0.16
+    image: docker.io/cbioportal/cbioportal:6.0.28
     container_name: cbioportal_container
     environment:
       HTTP_PROXY: "http://${HTTPS_PROXY_HOST}:${HTTPS_PROXY_PORT}"
