@@ -1,0 +1,145 @@
+services:
+  cbioportal:
+    container_name: cbioportal_container
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      HTTP_PROXY: "http://${HTTPS_PROXY_HOST}:${HTTPS_PROXY_PORT}"
+      NO_PROXY: "cbioportal"
+    volumes:
+     - ./../study:/study/:z
+     - ./../config/application.properties:/cbioportal/application.properties:Z
+     - ./../config/security.properties:/cbioportal/security.properties:Z
+     - ./../config/${LOGO:-pm4onco.png}:/cbioportal-webapp/webapp/images/${LOGO:-pm4onco.png}:Z
+     - ./../config/cacerts:/etc/ssl/certs/java/cacerts:Z
+     - cbioportal_portalinfo:/cbioportal/portalinfo:z
+    depends_on:
+     - cbioportal_database
+     - cbioportal-session
+    networks:
+     - cbioportal_net
+  cbioportal_database:
+    container_name: cbioportal_database_container
+    image: docker.io/mariadb:11.5.2
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-P@ssword1}
+      MYSQL_DATABASE: cbioportal
+      MYSQL_USER: cbio
+      MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD:-P@ssword1}
+    security_opt:
+      - seccomp:unconfined
+    volumes:
+     - ./../data/cgds.sql:/docker-entrypoint-initdb.d/cgds.sql:Z
+     - ./../data/seed-cbioportal_hg19_hg38_v2.13.1.sql.gz:/docker-entrypoint-initdb.d/seed.sql.gz:Z
+     - ./../data/tableExtension.sql:/docker-entrypoint-initdb.d/tableExtension.sql:Z
+     - cbioportal_data:/var/lib/mysql
+    command:
+     - --character-set-server=latin1
+     - --collation-server=latin1_swedish_ci
+     - --innodb_buffer_pool_size=${INNODB_BUFFER_POOL_SIZE:-100M}
+    networks:
+     - cbioportal_net
+  cbioportal-session:
+    container_name: cbioportal_session_container
+    image: docker.io/cbioportal/session-service:0.6.1
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 5000
+      JAVA_OPTS: -Dspring.data.mongodb.uri=mongodb://cbioportal-session-database:27017/session-service
+    depends_on:
+      - cbioportal-session-database
+    networks:
+      - cbioportal_net
+  cbioportal-session-database:
+    container_name: cbioportal_session_database_container
+    image: docker.io/mongo:4.2
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: session_service
+    volumes:
+      - cbioportal_session_data:/data/db
+    networks:
+      - cbioportal_net
+  cbioproxy:
+    container_name: cbioproxy_container
+    image: ghcr.io/pm4onco/cbioproxy:${RELEASE:-latest}
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      NGINX_LOGINREQUIRED: ${LOGINREQUIRED:-false}
+      PORT: ${PORT:-8080}
+    volumes:
+      - ./../services/cbioproxy/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:Z
+      - ./../services/cbioproxy/lua_resource_config.lua:/etc/nginx/conf.d/lua_resource_config.lua:Z
+      - ./../reports:/usr/share/reports:Z
+    ports:
+      - "${PORT:-8080}:8080"
+    depends_on:
+      - cbioportal
+      - genomenexus
+    networks:
+      - cbioportal_net
+  genomenexus:
+    container_name: genomenexus_container
+    image: ghcr.io/pm4onco/genome-nexus:${RELEASE:-latest}
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      - SERVER_PORT=8888
+    depends_on:
+      - genomenexus_db
+      - ensembl-rest
+      - ensembl-mysql
+    command: [
+      "-Dhttps.proxyHost=${HTTPS_PROXY_HOST}",
+      "-Dhttps.proxyPort=${HTTPS_PROXY_PORT}",
+      "-Dspring.data.mongodb.uri=mongodb://genomenexus_db:27017/annotator",
+      "-Dvep.url=http://ensembl-rest:3000/vep/human/hgvs/VARIANT?content-type=application/json&xref_refseq=1&ccds=1&canonical=1&domains=1&hgvs=1&numbers=1&protein=1",
+      "-Dgenexrefs.url=http://ensembl-rest:3000/xrefs/id/ACCESSION?content-type=application/json",
+      "-Densembl.sequence.url=http://localhost:3000/sequence/region/human/QUERY?content-type=application/json",
+      "-DmutationAssessor.url=http://127.0.0.1/VARIANT&frm=json&fts=input,rgaa,rgvt,msa,pdb,F_impact,F_score,vc_score,vs_score,info,var,gene,uprot,rsprot,gaps,msa_height,chr,rs_pos,rs_res,up_pos,up_res,cnt_cosmic,cnt_snps",
+      "-jar",
+      "/app/genome-nexus.war"
+    ]
+    networks:
+      - cbioportal_net
+  genomenexus_db:
+    image: ghcr.io/pm4onco/gn-mongo:0.31
+    pull_policy: always
+    restart: unless-stopped
+    container_name: genomenexus_db_container
+    environment:
+      - REF_ENSEMBL_VERSION=grch37_ensembl92
+      - SPECIES=homo_sapiens
+    volumes:
+      - genomenexus_data:/data/db
+    networks:
+      - cbioportal_net
+  ensembl-rest:
+    image: docker.io/nr205/ensembl-rest:111
+    pull_policy: always
+    restart: unless-stopped
+    container_name: ensembl_rest_container
+    volumes:
+      - ./../config/ensembl_rest.conf:/opt/vep/src/ensembl-rest/ensembl_rest.conf:Z
+    networks:
+      - cbioportal_net
+    depends_on:
+      - ensembl-mysql
+  ensembl-mysql:
+    image: ghcr.io/pm4onco/ensembl-mysql:latest
+    pull_policy: always
+    restart: unless-stopped
+    container_name: ensembl_mysql_container
+    networks:
+      - cbioportal_net
+
+networks:
+  cbioportal_net:
+
+volumes:
+  cbioportal_data:
+  cbioportal_session_data:
+  cbioportal_portalinfo:
+  genomenexus_data:

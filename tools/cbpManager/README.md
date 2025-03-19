@@ -1,22 +1,8 @@
 # cbpManager-deploy
 
-Deploy cbpManager either with a Dockerfile or with docker-compose:
+Deploy cbpManager either with with docker compose:
 
-## Deploy the cbpManager with the Dockerfile:
-
-Build image:
-
-`docker build -t cbpmanager .`
-
-Run docker container:
-(Change portforwarding and the filepath that should be mounted into the docker container.
-/path/to/study is the path to the study folder containing the studies of cBioPortal Cancer Genomics.)
-
-`docker run -d -p 3838:3838 -v /path/to/study:/srv/shiny-server/study/ --name cbpmanager cbpmanager:latest`
-
-Check the application in your browser at http://localhost:3838
-
-## Deploy the cbpManager and ShinyProxy via docker-compose:
+## Deploy the cbpManager and ShinyProxy via docker compose:
 
 **IMPORTANT:** To change the default study directory to a custom study directory, you have to edit the line 18 of services/shinyproxy/application.yml and replace "/PATH/TO/CUSTOM/STUDY_DIR/" with the path to the study directory.
 **container-volumes: ["/PATH/TO/CUSTOM/STUDY_DIR/:/srv/shiny-server/study/"]**
@@ -30,7 +16,7 @@ You can change the port of ShinyProxy by editing the `PORT` variable in the `.en
 
 Start all necessary docker containers:
 
-`docker-compose up -d`
+`docker compose up -d`
 
 Check the application in your browser at http://localhost:8180 and log in with user: **admin** and password: **password**
 

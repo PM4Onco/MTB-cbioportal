@@ -1,0 +1,47 @@
+services:
+  cbioportal:
+    image: docker.io/cbioportal/cbioportal:6.0.16
+    command: [
+      "java",
+      "-Xms2g",
+      "-Xmx4g",
+      "-Doncokb.public_api.url=${ONCOKB_URL:-https://public.api.oncokb.org/api/v1}",
+      "-Doncokb.token=${ONCOKB_TOKEN}",
+      "-Dgenomenexus.url=/genome-nexus",
+      "-Dsession.service.url=http://cbioportal-session:5000/api/sessions/my-portal/",
+      "-Dshow.civic=${ENABLE_CIVIC:-true}",
+      "-Dmycancergenome.show=${ENABLE_MYCANCERGENOME:-true}",
+      "-Dquick_search.enabled=${ENABLE_QUICKSEARCH:-true}",
+      "-Dfilter_groups_by_appname=false",
+      "-Dhttps.proxyHost=${HTTPS_PROXY_HOST}",
+      "-Dhttps.proxyPort=${HTTPS_PROXY_PORT}",
+      "-Dhttp.nonProxyHosts=cbioportal-session|${NOPROXY_HOSTS:-}",
+      "-Dskin.right_logo=${LOGO:-pm4onco.png}",
+      "-Dspring.config.location=cbioportal/application.properties",
+      "-Dauthenticate=${AUTHENTICATE:-false}",
+      "-Dspring.autoconfigure.exclude=${EXCLUDE_AUTOCONFIG:-org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration}",
+      "-Dalways_show_study_group=${ALWAYS_SHOW_STUDY_GROUP:-none}",
+      "-Dspring.security.oauth2.client.provider.keycloak.user-name-attribute=email",
+      "-Dspring.security.oauth2.client.registration.keycloak.scope=openid,email,roles",
+      "-Dspring.security.oauth2.client.provider.keycloak.issuer-uri=${KEYCLOAK_REALM:-}",
+      "-Dspring.security.oauth2.client.registration.keycloak.client-id=${KEYCLOAK_CLIENT_CBIOPORTAL:-}",
+      "-Dspring.security.oauth2.client.registration.keycloak.client-secret=${KEYCLOAK_SECRET_CBIOPORTAL:-}",
+      "-Ddat.method=${DATA_ACCESS_TOKEN:-none}",
+      "-Ddat.oauth2.clientId=${KEYCLOAK_CLIENT_CBIOPORTAL:-}",
+      "-Ddat.oauth2.clientSecret=${KEYCLOAK_SECRET_CBIOPORTAL:-}",
+      "-Ddat.oauth2.issuer=${KEYCLOAK_REALM:-}",
+      "-Ddat.oauth2.accessTokenUri=${KEYCLOAK_REALM:-}/protocol/openid-connect/token",
+      "-Ddat.oauth2.userAuthorizationUri=${KEYCLOAK_REALM:-}/protocol/openid-connect/auth",
+      "-Ddat.oauth2.jwkUrl=${KEYCLOAK_REALM:-}/protocol/openid-connect/certs",
+      "-Ddat.oauth2.redirectUri=${CBIOPORTAL_URL}/api/data-access-token/oauth2",
+      "-Dsecurity.cors.allowed-origins=*",
+      "-Dserver.tomcat.remoteip.port-header=X-Forwarded-Port",
+      "-Dserver.tomcat.remoteip.protocol-header=X-Forwarded-Proto",
+      "-cp",
+      "/cbioportal-webapp:/cbioportal-webapp/lib/*",
+      "org.cbioportal.PortalApplication"
+    ]
+  cbioproxy:
+    volumes:
+      - ./../services/cbioproxy/cbioportal-research.conf:/cbioportal.conf:Z
+

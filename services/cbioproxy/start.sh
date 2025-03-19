@@ -4,7 +4,7 @@ sleep 2
 
 if [ -s /keycloak.pem ]; then
     echo "Keycloak certificate chain present. Copying to ca store."
-    cp /keycloak.pem /usr/local/share/ca-certificates/keycloak.pem
+    openssl x509 -inform PEM -in /keycloak.pem -out /usr/local/share/ca-certificates/keycloak.pem
     sed 's/#lua_ssl_trusted_certificate/lua_ssl_trusted_certificate/g' /cbioportal.conf > /etc/nginx/conf.d/cbioportal.conf
     update-ca-certificates
 else

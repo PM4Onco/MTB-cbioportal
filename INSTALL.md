@@ -6,7 +6,7 @@
     - 4 CPU cores
     - 10 GB of RAM
     - 100GB of free disk space
-2. A container environment like Docker or Podman with support for Compose V3 (e.g. through `docker-compose`, `podman-compose`, etc.)
+2. A container environment like Docker or Podman with support for Compose V3 (e.g. through `docker compose`, `podman-compose`, etc.)
 
 The following steps will assume the usage of Docker  without an explicitly stated `sudo` command.
 
@@ -27,7 +27,7 @@ It is recommended to start with a setup without authentication and add that late
 ### 1. Clone the git repository
 
 ```
-git clone https://github.com/buschlab/MTB-cbioportal.git
+git clone https://github.com/pm4onco/MTB-cbioportal.git
 cd MTB-cbioportal
 ```
 
@@ -50,13 +50,13 @@ Please set the password for the databases **now** in the `.env` file. They will 
 ### 3. Initialize config files
 
 ```
-docker-compose -f init.yml run --rm cbioportal
+docker compose -f init.yml run --rm cbioportal
 ```
 
 for a network without proxy and
 
 ```
-docker-compose -f init.yml run --rm -e https_proxy=http://proxyurl:port cbioportal
+docker compose -f init.yml run --rm -e https_proxy=http://proxyurl:port cbioportal
 ```
 
 for a network with proxy.
@@ -68,13 +68,13 @@ This will download the SQL files to initalize the cBioPortal database and also i
 Now start MTB-cBioPortal. 
 
 ```
-docker-compose up -d
+docker compose up -d
 ```
 
 If the system is limited in I/O capabilities, a timeout might occur. This timeout can be increased by using
 
 ```
-COMPOSE_HTTP_TIMEOUT=200 docker-compose up -d
+COMPOSE_HTTP_TIMEOUT=200 docker compose up -d
 ```
 
 After the command is complete it should be possible to access cBioPortal on your machine using the webbrowser on the previously specified port.
@@ -85,7 +85,7 @@ When using a remote machine and a rootless container environment like Podman, it
 To import one of the provided test data sets use the following command
 
 ```
-docker-compose exec cbioportal metaImport.py -u http://cbioportal:8080 -s study/testpatient -o
+docker compose exec cbioportal metaImport.py -u http://cbioportal:8080 -s study/testpatient -o
 ```
 
 The adress here doesn't require any change, as it's being called from inside the container.
@@ -221,18 +221,18 @@ DATA_ACCESS_TOKEN=oauth2
 
 Shut down all services using
 ```
-docker-compose down
+docker compose down
 ```
 
 Run the initialization command again, as it will add the Keycloak certificate to the trusted castore for cBioPortal.
 
 ```
-docker-compose -f init.yml run --rm cbioportal
+docker compose -f init.yml run --rm cbioportal
 ```
 
 After that start cBioPortal again using
 ```
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. Dumping portal info
@@ -240,12 +240,12 @@ docker-compose up -d
 The import process contains checks against available datasources in cBioPortal. As the enabled authentication blocks direct API access the required data must be exported to disk. For this use the following command
 
 ```
-docker-compose exec cbioportal bash /cbioportal/dumpPortalInfo.sh
+docker compose exec cbioportal bash /cbioportal/dumpPortalInfo.sh
 ```
 
 Importing data must now use the provided portalinfo. The updated import command looks like this
 ```
-docker-compose exec cbioportal metaImport.py -p /cbioportal/portalinfo -s study/patient_example -o
+docker compose exec cbioportal metaImport.py -p /cbioportal/portalinfo -s study/patient_example -o
 ```
 
 ## Troubleshooting

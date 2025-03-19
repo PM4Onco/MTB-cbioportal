@@ -1,14 +1,13 @@
-version: "3"
 services:
   mtbimporter:
     restart: unless-stopped
-    image: ghcr.io/buschlab/mtbimporter:latest
+    image: ghcr.io/pm4onco/mtbimporter:latest
     command: "/app/settings.yaml"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./settings.yaml:/app/settings.yaml"
       - "./input:/app/input"
-      - "./mapper:/app/mapper"
+      - "./mapper:/mapper"
       - "./processed:/app/processed"
       - "../../study:/app/study"
       - "./template:/app/template"

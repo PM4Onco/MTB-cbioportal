@@ -3,7 +3,7 @@
 MtbImporter is a tool that eases the data integration, management and import of both clinical and mutational data into [cBioPortal](https://cbioportal.org).
 It is tested and optimized to work with the core components of the MIRACUM UseCase 3 *Support for Molecular Tumor Boards*, which are available here:
 
-- [MTB-cBioPortal](https://github.com/buschlab/MTB-cBioPortal)
+- [MTB-cBioPortal](https://github.com/pm4onco/MTB-cBioPortal)
 - [MIRACUM-Pipe](https://github.com/AG-Boerries/MIRACUM-Pipe) (v3.0.0 and upwards)
 
 To account for the huge variety of clinical source systems, this tool relies on csv files as input format and uses Metadata Repositories to store data model descriptions and their relations in a source code independent way.
@@ -33,7 +33,7 @@ If you want to consume FHIR resources, you will need to flatten them first to a 
 General assumption: The tools relies on the fact that the mutation data uses the sample id as identifier and that the patient id can be resolved from a FHIR repository.
 
 For a minimal data model description of cBioPortal that covers all attributes provided by the pipeline see [here](https://mdr.itcr.uni-luebeck.de/view.xhtml?namespace=cbioportal).
-We also provide a working test dataset for both clinical and mutational data [here](https://github.com/buschlab/MTB-cbioportal/tree/master/tools/MtbImporter/testdata). 
+We also provide a working test dataset for both clinical and mutational data [here](https://github.com/pm4onco/MTB-cbioportal/tree/master/tools/MtbImporter/testdata). 
 
 To get started, copy the `settings.yaml.example` file to `settings.yaml`. This avoids future conflicts within the git tree. You need to tailor the configuration parameters to fit your environment first. The following configuration parameters are available:
 
@@ -98,7 +98,7 @@ To get started, copy the `settings.yaml.example` file to `settings.yaml`. This a
 | docker.compose.workdir                       | Workdir where your docker-compose.yml for cBioPortal is located                                                                                                                                                                         |
 | docker.compose.serviceName                   | Service name that you set for cBioPortal in you docker-compose.yml file                                                                                                                                                                 |
 | docker.studyFolder                           | Folder where your study folder is mounted inside the Docker container                                                                                                                                                                   |
-| docker.imageName                             | Specify the docker image that you use for cBioPortal (e.g. ghcr.io/buschlab/cbioportal:latest)                                                                                                                                          |
+| docker.imageName                             | Specify the docker image that you use for cBioPortal (e.g. ghcr.io/pm4onco/cbioportal:latest)                                                                                                                                          |
 | docker.containerName                         | Specify the full name of you cBioPortal container (required for restart)                                                                                                                                                                |
 | docker.networkName                           | Specify the network that the import container needs to attach to                                                                                                                                                                        |
 | docker.propertiesFile                        | Absolute path on host filesystem to the portal.properties config file of cBioPortal                                                                                                                                                     |
@@ -138,7 +138,7 @@ There are two special fields for clinical data, that can be used as a mapping ta
 ### Preparation
 
 Each file go through a preparation process. This will generate Map, indexed by the patient id. It can be used to cache information that might be relevant for the whole mapping process. 
-In this [example](https://github.com/buschlab/MtbImporter/blob/main/mapper/prepare.groovy) the year and month of first diagnosis is stored. Later it can be used to calculate relative timestamps in timelines or survival times.
+In this [example](https://github.com/pm4onco/MtbImporter/blob/main/mapper/prepare.groovy) the year and month of first diagnosis is stored. Later it can be used to calculate relative timestamps in timelines or survival times.
 
 ### Mapping using Kairos CentraXX MDR
 

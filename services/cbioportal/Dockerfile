@@ -15,7 +15,7 @@ FROM docker.io/maven:3-eclipse-temurin-21 as build
 
 ARG VERSION=6.0.16
 
-RUN git clone --single-branch --branch release$VERSION https://github.com/buschlab/cbioportal-frontend.git /frontend
+RUN git clone --single-branch --branch release$VERSION https://github.com/pm4onco/cbioportal-frontend.git /frontend
 WORKDIR /frontend
 RUN mvn clean install
 
@@ -99,7 +99,7 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/classes            $PORTAL_WEB_HOME/
 # add entrypoint
 COPY --from=build /cbioportal/docker/web-and-data/docker-entrypoint.sh /usr/local/bin/
 
-# script for calling dumpPortalInfo.py from docker-compose
+# script for calling dumpPortalInfo.py from docker compose
 RUN echo "cd /core/scripts && ./dumpPortalInfo.pl /cbioportal/portalinfo" >> /cbioportal/dumpPortalInfo.sh
 RUN chmod +x /cbioportal/dumpPortalInfo.sh
 

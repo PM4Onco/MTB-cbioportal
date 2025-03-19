@@ -1,0 +1,110 @@
+services:
+  cbioportal:
+    image: ghcr.io/pm4onco/cbioportal:${RELEASE:-latest}
+    volumes:
+     - ./../config/frontend.json:/cbioportal/frontend.json:Z
+    command: [
+      "/usr/bin/java",
+      "-Xms2g",
+      "-Xmx4g",
+      "-Doncokb.public_api.url=${ONCOKB_URL:-https://public.api.oncokb.org/api/v1}",
+      "-Doncokb.token=${ONCOKB_TOKEN}",
+      "-Dgenomenexus.url=/genome-nexus",
+      "-Dsession.service.url=http://cbioportal-session:5000/api/sessions/my-portal/",
+      "-Dshow.civic=${ENABLE_CIVIC:-true}",
+      "-Dmycancergenome.show=${ENABLE_MYCANCERGENOME:-false}",
+      "-Dquick_search.enabled=${ENABLE_QUICKSEARCH:-true}",
+      "-Dfilter_groups_by_appname=false",
+      "-Dhttps.proxyHost=${HTTPS_PROXY_HOST}",
+      "-Dhttps.proxyPort=${HTTPS_PROXY_PORT}",
+      "-Dhttp.nonProxyHosts=cbioportal-session|${NOPROXY_HOSTS:-}",
+      "-Dfrontend.config=/cbioportal/frontend.json",
+      "-Dskin.right_logo=${LOGO:-pm4onco.png}",
+      "-Dspring.config.location=cbioportal/application.properties",
+      "-Dauthenticate=${AUTHENTICATE:-false}",
+      "-Dspring.autoconfigure.exclude=${EXCLUDE_AUTOCONFIG:-org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration}",
+      "-Dalways_show_study_group=${ALWAYS_SHOW_STUDY_GROUP:-none}",
+      "-Dspring.security.oauth2.client.provider.keycloak.user-name-attribute=email",
+      "-Dspring.security.oauth2.client.registration.keycloak.scope=openid,email,roles",
+      "-Dspring.security.oauth2.client.provider.keycloak.issuer-uri=${KEYCLOAK_REALM:-}",
+      "-Dspring.security.oauth2.client.registration.keycloak.client-id=${KEYCLOAK_CLIENT_CBIOPORTAL:-}",
+      "-Dspring.security.oauth2.client.registration.keycloak.client-secret=${KEYCLOAK_SECRET_CBIOPORTAL:-}",
+      "-Ddat.method=${DATA_ACCESS_TOKEN:-none}",
+      "-Ddat.oauth2.clientId=${KEYCLOAK_CLIENT_CBIOPORTAL:-}",
+      "-Ddat.oauth2.clientSecret=${KEYCLOAK_SECRET_CBIOPORTAL:-}",
+      "-Ddat.oauth2.issuer=${KEYCLOAK_REALM:-}",
+      "-Ddat.oauth2.accessTokenUri=${KEYCLOAK_REALM:-}/protocol/openid-connect/token",
+      "-Ddat.oauth2.userAuthorizationUri=${KEYCLOAK_REALM:-}/protocol/openid-connect/auth",
+      "-Ddat.oauth2.jwkUrl=${KEYCLOAK_REALM:-}/protocol/openid-connect/certs",
+      "-Ddat.oauth2.redirectUri=${CBIOPORTAL_URL}/api/data-access-token/oauth2",
+      "-Dsecurity.cors.allowed-origins=*",
+      "-Dserver.tomcat.remoteip.port-header=X-Forwarded-Port",
+      "-Dserver.tomcat.remoteip.protocol-header=X-Forwarded-Proto",
+      "-cp",
+      "/cbioportal-webapp:/cbioportal-webapp/lib/*",
+      "org.cbioportal.PortalApplication"
+    ]
+  cbioproxy:
+    volumes:
+      - ./../services/cbioproxy/cbioportal.conf:/cbioportal.conf:Z
+      - ./../services/cbioproxy/lua_auth_config.lua:/etc/nginx/conf.d/lua_auth_config.lua:Z
+      - ./../services/cbioproxy/lua_login_config.lua:/etc/nginx/conf.d/lua_login_config.lua:Z
+      - ./../config/attributes.json:/attributes.json:Z
+      - ./../data/tumorTypes.json:/tumorTypes.json:Z
+      - ./../config/keycloak.pem:/keycloak.pem:z
+    environment:
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-}
+      KEYCLOAK_CLIENT_FHIRSPARK: ${KEYCLOAK_CLIENT_FHIRSPARK:-fhirspark}
+      KEYCLOAK_SECRET_FHIRSPARK: ${KEYCLOAK_SECRET_FHIRSPARK:-nosecrethere}
+      CBIOPORTAL_URL: ${CBIOPORTAL_URL:-//localhost:8080}
+    depends_on:
+      - fhirspark
+  fhirspark:
+    restart: unless-stopped
+    image: ghcr.io/pm4onco/fhirspark:${RELEASE:-latest}
+    container_name: cbioportal_fhirspark
+    depends_on:
+      - hapiserver
+    environment:
+      FHIRSPARK_FHIRBASE: http://hapiserver:8080/fhir
+      FHIRSPARK_PORTALURL: http://cbioportal:8080/
+      FHIRSPARK_LOGINREQUIRED: ${LOGINREQUIRED:-false}
+    volumes:
+      - ./../data/drugs.json:/drugs.json:Z
+      - ./../data/hgnc.csv:/hgnc.csv:Z
+    networks:
+      - cbioportal_net
+  hapiserver:
+    restart: unless-stopped
+    image: docker.io/hapiproject/hapi:v7.4.0-tomcat
+    container_name: cbioportal_fhirspark_hapiserver
+    depends_on:
+      - hapi-postgres
+    environment:
+      CATALINA_OPTS:
+        -Dhapi.fhir.server_address=${CBIOPORTAL_URL}/fhir
+        -Dhapi.fhir.local_base_url=http://hapiserver:8080/fhir
+        -Dhapi.fhir.reuse_cached_search_results_millis=5000
+        -Dhapi.fhir.validation.requests_enabled=false
+        -Dspring.datasource.url=jdbc:postgresql://hapi-postgres:5432/hapi?currentSchema=public
+        -Dspring.datasource.username=hapiserver
+        -Dspring.datasource.password=${POSTGRES_USER_PASSWORD:-P@ssword2}
+        -Dspring.datasource.driverClassName=org.postgresql.Driver
+        -Dspring.jpa.properties.hibernate.dialect=ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
+    networks:
+      - cbioportal_net
+  hapi-postgres:
+    restart: unless-stopped
+    image: docker.io/postgres:16.4-alpine
+    container_name: cbioportal_fhirspark_database
+    volumes:
+      - fhir_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: hapiserver
+      POSTGRES_PASSWORD: ${POSTGRES_USER_PASSWORD:-P@ssword2}
+      POSTGRES_DB: hapi
+    networks:
+      - cbioportal_net
+
+volumes:
+  fhir_data:

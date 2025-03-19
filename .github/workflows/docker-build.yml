@@ -1,4 +1,4 @@
-name: Docker build (care)
+name: Docker build (mtb)
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: Build care cBioPortal
-        run: docker compose -f compose.yml build cbioportal
-      - name: Build care cbioproxy
-        run: docker compose -f compose.yml build cbioproxy
+      - name: Build mtb cBioPortal
+        run: FLAVOR=mtb docker compose build cbioportal
+      - name: Build mtb cbioproxy
+        run: FLAVOR=mtb docker compose build cbioproxy
