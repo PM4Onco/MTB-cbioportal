@@ -1,7 +1,7 @@
 services:
   cbioportal:
     container_name: cbioportal_container
-    #pull_policy: always
+    pull_policy: always
     restart: unless-stopped
     environment:
       HTTP_PROXY: "http://${HTTPS_PROXY_HOST}:${HTTPS_PROXY_PORT}"

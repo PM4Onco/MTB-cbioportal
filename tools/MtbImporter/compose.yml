@@ -4,14 +4,14 @@ services:
     image: ghcr.io/pm4onco/mtbimporter:latest
     command: "/app/settings.yaml"
     volumes:
-      - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
-      - "./settings.yaml:/app/settings.yaml:z"
-      - "./input:/app/input:z"
-      - "./mapper:/mapper:z"
-      - "./processed:/app/processed:z"
-      - "../../study:/home/nreimer/git/MTB-cbioportal/study:z"
-      - "./template:/app/template:z"
-      - "../../reports:/app/reports:z"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./settings.yaml:/app/settings.yaml"
+      - "./input:/app/input"
+      - "./mapper:/mapper"
+      - "./processed:/app/processed"
+      - "../../study:/app/study"
+      - "./template:/app/template"
+      - "../../reports:/app/reports"
     networks:
       - mtb-cbioportal_cbioportal_net
     entrypoint: [

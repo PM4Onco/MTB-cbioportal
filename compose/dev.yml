@@ -2,7 +2,7 @@ services:
   cbioportal:
     image: ghcr.io/pm4onco/cbioportal:${RELEASE:-latest}
     build:
-      context: ./services/cbioportal
+      context: ./../services/cbioportal
       platforms:
         - "linux/amd64"
         - "linux/arm64"
@@ -89,7 +89,7 @@ services:
     restart: unless-stopped
     image: ghcr.io/pm4onco/fhirspark:${RELEASE:-latest}
     build:
-      context: ./services/fhirspark
+      context: ./../services/fhirspark
       platforms:
         - "linux/amd64"
         - "linux/arm64"
