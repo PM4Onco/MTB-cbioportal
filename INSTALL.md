@@ -27,7 +27,7 @@ It is recommended to start with a setup without authentication and add that late
 ### 1. Clone the git repository
 
 ```
-git clone https://github.com/buschlab/MTB-cbioportal.git
+git clone https://github.com/pm4onco/MTB-cbioportal.git
 cd MTB-cbioportal
 ```
 

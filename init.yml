@@ -2,7 +2,7 @@ version: '3'
 
 services:
   cbioportal:
-    image: ghcr.io/buschlab/cbioportal:${RELEASE:-latest}
+    image: ghcr.io/pm4onco/cbioportal:${RELEASE:-latest}
     container_name: cbioportal_init
     user: root
     environment:

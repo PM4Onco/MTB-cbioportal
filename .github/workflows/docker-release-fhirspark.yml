@@ -30,7 +30,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/buschlab/fhirspark
+          images: ghcr.io/pm4onco/fhirspark
           tags: |
             type=raw,enable=true,priority=200,prefix=,suffix=,value=
             type=raw,value=latest

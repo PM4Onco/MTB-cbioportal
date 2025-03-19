@@ -30,7 +30,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/buschlab/cbioportal
+          images: ghcr.io/pm4onco/cbioportal
           tags: |
             type=raw,enable=true,priority=200,prefix=,suffix=,value=
             type=raw,value=latest
@@ -47,7 +47,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/buschlab/cbioproxy
+          images: ghcr.io/pm4onco/cbioproxy
           tags: |
             type=raw,enable=true,priority=200,prefix=,suffix=,value=
             type=raw,value=latest

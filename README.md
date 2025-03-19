@@ -8,7 +8,7 @@ Installation is described [here](./INSTALL.md)
 
 ## Building images yourself
 
-All images with a `ghcr.io/buschlab/` prefix can be rebuilt using the following command:
+All images with a `ghcr.io/pm4onco/` prefix can be rebuilt using the following command:
 ```
 FLAVOR=dev docker compose build <service>
 ```
@@ -27,7 +27,7 @@ The only part that needs a database backup is the HAPI FHIR server. For that ple
 3. Verify that the newly created `dump_hapi.sql` file looks alright.
 4. Move the files `dump.sql` and `dump_hapi.sql` as well the directories `reports` and `study`to a different location.
 4. Stop all services of MIRMTBACUM-cbioportal using `docker compose down -v` **This will permanently delete all volume data, so you now rely on the backup you created in step 1!**
-5. Delete the MTB-cbioportal directory and make a fresh clone of the git repository using `git clone https://github.com/buschlab/MTB-cbioportal.git`
+5. Delete the MTB-cbioportal directory and make a fresh clone of the git repository using `git clone https://github.com/pm4onco/MTB-cbioportal.git`
 6. Copy dump.sql and dump_hapi.sql to the MTB-cbioportal directory
 7. Start the Postgres database using `docker compose up -d hapi-postgres`
 8. Import the `dump_hapi.sql` using the following command
@@ -55,19 +55,19 @@ The only part that needs a database backup is the HAPI FHIR server. For that ple
 
 | Service | Path (behind OpenResty) | Port (FLAVOR=dev) | Image |
 | - | - | - | - |
-| OpenResty  | / | 8080 | ghcr.io/buschlab/cbioroxy |
-| cBioPortal | / | 8081 | ghcr.io/buschlab/cbioportal |
+| OpenResty  | / | 8080 | ghcr.io/pm4onco/cbioroxy |
+| cBioPortal | / | 8081 | ghcr.io/pm4onco/cbioportal |
 | cBioPortal Debugger | - | 5005 | - |
 | cBioPortal DB | - | 3306 | mariadb |
 | Session Service | - | 5000 | cbioportal/session-service |
 | Session Service DB | - | 27017 | mongo |
-| FhirSpark | /mtb/ | 3001 | ghcr.io/buschlab/fhirspark |
+| FhirSpark | /mtb/ | 3001 | ghcr.io/pm4onco/fhirspark |
 | HAPI FHIR Server | /fhir/ | 8082 | hapiproject/hapi |
 | PostgreSQL Server | - | 5432 | postgres |
-| Genome Nexus | /genome-nexus | 8888 | ghcr.io/buschlab/genome-nexus |
+| Genome Nexus | /genome-nexus | 8888 | ghcr.io/pm4onco/genome-nexus |
 | Genome Nexus DB | - | 27018 | genomenexus/gn-mongo |
 | Ensembl REST API | - | 8083 | nr205/ensembl-rest |
-| Ensembl REST API DB | - | - | ghcr.io/buschlab/ensembl-mysql |
+| Ensembl REST API DB | - | - | ghcr.io/pm4onco/ensembl-mysql |
 
 
 ## Debugging

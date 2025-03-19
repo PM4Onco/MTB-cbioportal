@@ -1,8 +1,8 @@
 services:
   cbioportal:
-    image: ghcr.io/buschlab/cbioportal:${RELEASE:-latest}
+    image: ghcr.io/pm4onco/cbioportal:${RELEASE:-latest}
     build:
-      context: ./../services/cbioportal
+      context: ./services/cbioportal
       platforms:
         - "linux/amd64"
         - "linux/arm64"
@@ -87,9 +87,9 @@ services:
       - fhirspark
   fhirspark:
     restart: unless-stopped
-    image: ghcr.io/buschlab/fhirspark:${RELEASE:-latest}
+    image: ghcr.io/pm4onco/fhirspark:${RELEASE:-latest}
     build:
-      context: ./../services/fhirspark
+      context: ./services/fhirspark
       platforms:
         - "linux/amd64"
         - "linux/arm64"

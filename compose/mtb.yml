@@ -1,6 +1,6 @@
 services:
   cbioportal:
-    image: ghcr.io/buschlab/cbioportal:${RELEASE:-latest}
+    image: ghcr.io/pm4onco/cbioportal:${RELEASE:-latest}
     volumes:
      - ./config/frontend.json:/cbioportal/frontend.json:Z
     command: [
@@ -61,7 +61,7 @@ services:
       - fhirspark
   fhirspark:
     restart: unless-stopped
-    image: ghcr.io/buschlab/fhirspark:${RELEASE:-latest}
+    image: ghcr.io/pm4onco/fhirspark:${RELEASE:-latest}
     container_name: cbioportal_fhirspark
     depends_on:
       - hapiserver
@@ -69,6 +69,10 @@ services:
       FHIRSPARK_FHIRBASE: http://hapiserver:8080/fhir
       FHIRSPARK_PORTALURL: http://cbioportal:8080/
       FHIRSPARK_LOGINREQUIRED: ${LOGINREQUIRED:-false}
+      FHIRSPARK_SPECIMENSYSTEM: http://medic.uksh.de/fhir/Specimen/
+      FHIRSPARK_PATIENTSYSTEM: http://medic.uksh.de/fhir/Patient/
+      FHIRSPARK_REGEX_CBIO: "'-'"
+      FHIRSPARK_REGEX_HIS: /
     volumes:
       - ./data/drugs.json:/drugs.json:Z
       - ./data/hgnc.csv:/hgnc.csv:Z

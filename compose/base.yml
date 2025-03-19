@@ -1,7 +1,7 @@
 services:
   cbioportal:
     container_name: cbioportal_container
-    pull_policy: always
+    #pull_policy: always
     restart: unless-stopped
     environment:
       HTTP_PROXY: "http://${HTTPS_PROXY_HOST}:${HTTPS_PROXY_PORT}"
@@ -63,7 +63,7 @@ services:
       - cbioportal_net
   cbioproxy:
     container_name: cbioproxy_container
-    image: ghcr.io/buschlab/cbioproxy:${RELEASE:-latest}
+    image: ghcr.io/pm4onco/cbioproxy:${RELEASE:-latest}
     pull_policy: always
     restart: unless-stopped
     environment:
@@ -82,7 +82,7 @@ services:
       - cbioportal_net
   genomenexus:
     container_name: genomenexus_container
-    image: ghcr.io/buschlab/genome-nexus:${RELEASE:-latest}
+    image: ghcr.io/pm4onco/genome-nexus:${RELEASE:-latest}
     pull_policy: always
     restart: unless-stopped
     environment:
@@ -105,7 +105,7 @@ services:
     networks:
       - cbioportal_net
   genomenexus_db:
-    image: ghcr.io/buschlab/gn-mongo:0.31
+    image: ghcr.io/pm4onco/gn-mongo:0.31
     pull_policy: always
     restart: unless-stopped
     container_name: genomenexus_db_container
@@ -128,7 +128,7 @@ services:
     depends_on:
       - ensembl-mysql
   ensembl-mysql:
-    image: ghcr.io/buschlab/ensembl-mysql:latest
+    image: ghcr.io/pm4onco/ensembl-mysql:latest
     pull_policy: always
     restart: unless-stopped
     container_name: ensembl_mysql_container

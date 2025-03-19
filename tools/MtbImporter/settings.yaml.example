@@ -60,7 +60,7 @@ docker:
   #   workdir: /Users/nreimer/git/MTB-cbioportal
   #   serviceName: cbioportal
   studyFolder:  /study
-  imageName: ghcr.io/buschlab/cbioportal:latest
+  imageName: ghcr.io/pm4onco/cbioportal:latest
   containerName: cbioportal_container
   networkName: mtb-cbioportal_cbioportal_net
   propertiesFile: /absolute/path/to/MTB-cbioportal/config/portal.properties

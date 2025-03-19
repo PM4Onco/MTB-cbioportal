@@ -15,7 +15,7 @@ FROM docker.io/maven:3-eclipse-temurin-21 as build
 
 ARG VERSION=6.0.16
 
-RUN git clone --single-branch --branch release$VERSION https://github.com/buschlab/cbioportal-frontend.git /frontend
+RUN git clone --single-branch --branch release$VERSION https://github.com/pm4onco/cbioportal-frontend.git /frontend
 WORKDIR /frontend
 RUN mvn clean install
 
