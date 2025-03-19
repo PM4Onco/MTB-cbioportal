@@ -63,6 +63,12 @@ for a network with proxy.
 
 This will download the SQL files to initalize the cBioPortal database and also initialize the config file for the database.
 
+The application's Docker container are running as `root` user. If you are not the `root` user, you may want to change the permissions of the `data/` directory with e.g.:
+
+```
+sudo chmod 755 data/
+```
+
 ### 4. Starting MTB-cbioportal
 
 Now start MTB-cBioPortal. 
