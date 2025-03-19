@@ -43,5 +43,5 @@ services:
     ]
   cbioproxy:
     volumes:
-      - ./services/cbioproxy/cbioportal-research.conf:/cbioportal.conf:Z
+      - ./../services/cbioproxy/cbioportal-research.conf:/cbioportal.conf:Z
 

@@ -9,7 +9,7 @@ services:
     environment:
       SHOW_DEBUG_INFO: "true"
     volumes:
-     - ./config/frontend.json:/cbioportal/frontend.json:Z
+     - ./../config/frontend.json:/cbioportal/frontend.json:Z
     ports:
       - "5005:5005"
       - "8081:8080"
@@ -72,12 +72,12 @@ services:
         - "linux/amd64"
         - "linux/arm64"
     volumes:
-      - ./services/cbioproxy/cbioportal.conf:/cbioportal.conf:Z
-      - ./services/cbioproxy/lua_auth_config.lua:/etc/nginx/conf.d/lua_auth_config.lua:Z
-      - ./services/cbioproxy/lua_login_config.lua:/etc/nginx/conf.d/lua_login_config.lua:Z
-      - ./config/attributes.json:/attributes.json:Z
-      - ./data/tumorTypes.json:/tumorTypes.json:Z
-      - ./config/keycloak.pem:/keycloak.pem:z
+      - ./../services/cbioproxy/cbioportal.conf:/cbioportal.conf:Z
+      - ./../services/cbioproxy/lua_auth_config.lua:/etc/nginx/conf.d/lua_auth_config.lua:Z
+      - ./../services/cbioproxy/lua_login_config.lua:/etc/nginx/conf.d/lua_login_config.lua:Z
+      - ./../config/attributes.json:/attributes.json:Z
+      - ./../data/tumorTypes.json:/tumorTypes.json:Z
+      - ./../config/keycloak.pem:/keycloak.pem:z
     environment:
       KEYCLOAK_REALM: ${KEYCLOAK_REALM:-}
       KEYCLOAK_CLIENT_FHIRSPARK: ${KEYCLOAK_CLIENT_FHIRSPARK:-fhirspark}
@@ -101,15 +101,15 @@ services:
       FHIRSPARK_PORTALURL: http://cbioportal:8080/
       FHIRSPARK_LOGINREQUIRED: ${LOGINREQUIRED:-false}
     volumes:
-      - ./data/drugs.json:/drugs.json:Z
-      - ./data/hgnc.csv:/hgnc.csv:Z
+      - ./../data/drugs.json:/drugs.json:Z
+      - ./../data/hgnc.csv:/hgnc.csv:Z
     ports:
       - "3001:3001"
     networks:
       - cbioportal_net
   hapiserver:
     restart: unless-stopped
-    image: docker.io/hapiproject/hapi:v7.4.0-tomcat
+    image: docker.io/hapiproject/hapi:v7.6.0-tomcat
     container_name: cbioportal_fhirspark_hapiserver
     ports:
       - "8082:8080"

@@ -29,6 +29,11 @@ RUN git clone --single-branch --branch v1.0.7 https://github.com/cbioportal/cbio
 RUN sed -i 's/|| loh ||/||/' core/src/main/java/org/mskcc/cbio/portal/util/ExtendedMutationUtil.java
 RUN sed -i 's/safeStringTest( mutation.getMutationStatus(), "LOH" )/false/' core/src/main/java/org/mskcc/cbio/portal/scripts/MutationFilter.java
 
+# Show all CNVs
+RUN sed -i 's/(-2, 2)/(-2, -1, 1, 2)/' /cbioportal/src/main/java/org/cbioportal/web/parameter/DiscreteCopyNumberEventType.java
+RUN sed -i 's/\!alterationTypes.contains(-1) && \!alterationTypes.contains(0) && \!alterationTypes.contains(1)/!alterationTypes.contains(0)/' /cbioportal/src/main/java/org/cbioportal/service/impl/DiscreteCopyNumberServiceImpl.java
+RUN sed -i 's/\!alterationTypes.contains(CNA.HETLOSS) && \!alterationTypes.contains(CNA.DIPLOID) && \!alterationTypes.contains(CNA.GAIN)/!alterationTypes.contains(CNA.DIPLOID)/' /cbioportal/src/main/java/org/cbioportal/service/impl/DiscreteCopyNumberServiceImpl.java
+
 RUN mvn -DskipTests -Dfrontend.version=0.3.0 -Dfrontend.groupId=com.github.cbioportal clean install package
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*-exec.jar)
 

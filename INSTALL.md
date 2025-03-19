@@ -181,7 +181,7 @@ Click the *Save* button to save the new URLs.
 
 ![Client URL](images/clientUrl.png)
 
-Repeat the same process with the `cbioportal_client_export.json` file.  The credentials will later be used as `KEYCLOAK_SECRET_FHIRSPARK` in step 3.
+Repeat the same process with the `fhirspark_client_export.json` file.  The credentials will later be used as `KEYCLOAK_SECRET_FHIRSPARK` in step 3.
 
 #### Exporting client roles
 
@@ -205,9 +205,8 @@ Replace the `keycloak.pem` file in the `config` directory with the webserver cer
 LOGINREQUIRED=true
 AUTHENTICATE=oauth2
 EXCLUDE_AUTOCONFIG=
-KEYCLOAK_URL=https://mykeycloak.de
 CBIOPORTAL_URL=https://mycbioportal.de
-KEYCLOAK_REALM=mtb
+KEYCLOAK_REALM=https://mykeycloak.de/auth/realms/mtb
 KEYCLOAK_CLIENT_CBIOPORTAL=cbioportal
 KEYCLOAK_SECRET_CBIOPORTAL=mysecret
 KEYCLOAK_CLIENT_FHIRSPARK=fhirspark
