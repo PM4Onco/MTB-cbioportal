@@ -36,7 +36,7 @@ jobs:
             type=raw,value=latest
 
       - name: cBioPortal Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: services/cbioportal
           platforms: linux/amd64,linux/arm
@@ -53,7 +53,7 @@ jobs:
             type=raw,value=latest
 
       - name: cbioproxy Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: services/cbioproxy
           platforms: linux/amd64,linux/arm
