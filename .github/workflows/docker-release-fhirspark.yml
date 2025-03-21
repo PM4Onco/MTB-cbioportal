@@ -36,7 +36,7 @@ jobs:
             type=raw,value=latest
 
       - name: fhirspark Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: services/fhirspark
           platforms: linux/amd64,linux/arm
