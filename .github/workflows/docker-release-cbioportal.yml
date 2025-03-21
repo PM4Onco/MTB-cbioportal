@@ -1,8 +1,9 @@
 name: Release cbioportal, cbioproxy
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - '**'
 
 jobs:
   build:
@@ -32,7 +33,7 @@ jobs:
         with:
           images: ghcr.io/pm4onco/cbioportal
           tags: |
-            type=raw,enable=true,priority=200,prefix=,suffix=,value=
+            type=ref,event=tag
             type=raw,value=latest
 
       - name: cBioPortal Build and push
@@ -49,7 +50,7 @@ jobs:
         with:
           images: ghcr.io/pm4onco/cbioproxy
           tags: |
-            type=raw,enable=true,priority=200,prefix=,suffix=,value=
+            type=ref,event=tag
             type=raw,value=latest
 
       - name: cbioproxy Build and push

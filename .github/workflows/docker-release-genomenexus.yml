@@ -1,8 +1,9 @@
 name: Release genome-nexus
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - '**'
 
 jobs:
   build:
@@ -31,7 +32,7 @@ jobs:
         with:
           images: ghcr.io/pm4onco/genome-nexus
           tags: |
-            type=raw,enable=true,priority=200,prefix=,suffix=,value=
+            type=ref,event=tag
             type=raw,value=latest
 
       - name: genome-nexus Build and push

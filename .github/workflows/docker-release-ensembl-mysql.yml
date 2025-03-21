@@ -1,8 +1,9 @@
 name: Release ensembl-rest
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - '**'
 
 jobs:
   build:
@@ -31,7 +32,7 @@ jobs:
         with:
           images: ghcr.io/pm4onco/ensembl-mysql
           tags: |
-            type=raw,enable=true,priority=200,prefix=,suffix=,value=
+            type=ref,event=tag
             type=raw,value=latest
 
       - name: ensembl-mysql Build and push
