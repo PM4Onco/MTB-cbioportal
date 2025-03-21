@@ -39,7 +39,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./services/cbioportal
-          platforms: linux/amd64,linux/arm
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-cbioportal.outputs.tags }}
 
@@ -56,6 +56,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./services/cbioproxy
-          platforms: linux/amd64,linux/arm
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-cbioproxy.outputs.tags }}
