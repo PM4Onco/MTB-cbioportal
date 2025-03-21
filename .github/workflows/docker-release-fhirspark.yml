@@ -38,7 +38,7 @@ jobs:
       - name: fhirspark Build and push
         uses: docker/build-push-action@v6
         with:
-          context: services/fhirspark
+          context: ./services/fhirspark
           platforms: linux/amd64,linux/arm
           push: true
           tags: ${{ steps.meta.outputs.tags }}

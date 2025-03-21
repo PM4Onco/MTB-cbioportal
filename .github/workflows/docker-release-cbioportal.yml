@@ -27,7 +27,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: cBioPortal Docker meta
-        id: meta
+        id: meta-cbioportal
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/pm4onco/cbioportal
@@ -38,13 +38,13 @@ jobs:
       - name: cBioPortal Build and push
         uses: docker/build-push-action@v6
         with:
-          context: services/cbioportal
+          context: ./services/cbioportal
           platforms: linux/amd64,linux/arm
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta-cbioportal.outputs.tags }}
 
       - name: cbioproxy Docker meta
-        id: meta
+        id: meta-cbioproxy
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/pm4onco/cbioproxy
@@ -55,7 +55,7 @@ jobs:
       - name: cbioproxy Build and push
         uses: docker/build-push-action@v6
         with:
-          context: services/cbioproxy
+          context: ./services/cbioproxy
           platforms: linux/amd64,linux/arm
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta-cbioproxy.outputs.tags }}

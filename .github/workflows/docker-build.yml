@@ -2,6 +2,8 @@ name: Docker build (mtb)
 
 on:
   push:
+    branches:
+      - '**'
 
 jobs:
   build:
