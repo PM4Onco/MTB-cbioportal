@@ -105,7 +105,7 @@ services:
     networks:
       - cbioportal_net
   genomenexus_db:
-    image: ghcr.io/pm4onco/gn-mongo:0.31
+    image: ghcr.io/buschlab/gn-mongo:0.31
     pull_policy: always
     restart: unless-stopped
     container_name: genomenexus_db_container
