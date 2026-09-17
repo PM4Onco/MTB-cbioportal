@@ -13,31 +13,36 @@
 # (see: stackoverflow.com/questions/56278325)
 FROM docker.io/maven:3-eclipse-temurin-21 as build
 
-ARG VERSION=6.0.16
+ARG VERSION=6.4.4
 
 RUN git clone --single-branch --branch release$VERSION https://github.com/pm4onco/cbioportal-frontend.git /frontend
 WORKDIR /frontend
-RUN mvn clean install
+ENV YARN_NETWORK_TIMEOUT=600000
+RUN mvn clean install -Dgpg.skip=true
 
 RUN git clone --single-branch --branch v$VERSION https://github.com/cbioportal/cbioportal.git /cbioportal
 WORKDIR /cbioportal
 RUN cp /cbioportal/src/main/resources/application.properties.EXAMPLE /cbioportal/src/main/resources/application.properties
 
-RUN git clone --single-branch --branch v1.0.7 https://github.com/cbioportal/cbioportal-core.git /cbioportal/core
+RUN git clone --single-branch --branch v1.0.15 https://github.com/cbioportal/cbioportal-core.git /cbioportal/core
 
 # don't skip LoH mutations on import
 RUN sed -i 's/|| loh ||/||/' core/src/main/java/org/mskcc/cbio/portal/util/ExtendedMutationUtil.java
 RUN sed -i 's/safeStringTest( mutation.getMutationStatus(), "LOH" )/false/' core/src/main/java/org/mskcc/cbio/portal/scripts/MutationFilter.java
 
 # Show all CNVs
-RUN sed -i 's/(-2, 2)/(-2, -1, 1, 2)/' /cbioportal/src/main/java/org/cbioportal/web/parameter/DiscreteCopyNumberEventType.java
-RUN sed -i 's/\!alterationTypes.contains(-1) && \!alterationTypes.contains(0) && \!alterationTypes.contains(1)/!alterationTypes.contains(0)/' /cbioportal/src/main/java/org/cbioportal/service/impl/DiscreteCopyNumberServiceImpl.java
-RUN sed -i 's/\!alterationTypes.contains(CNA.HETLOSS) && \!alterationTypes.contains(CNA.DIPLOID) && \!alterationTypes.contains(CNA.GAIN)/!alterationTypes.contains(CNA.DIPLOID)/' /cbioportal/src/main/java/org/cbioportal/service/impl/DiscreteCopyNumberServiceImpl.java
+RUN sed -i 's/(-2, 2)/(-2, -1, 1, 2)/' /cbioportal/src/main/java/org/cbioportal/legacy/web/parameter/DiscreteCopyNumberEventType.java
+RUN sed -i 's/\!alterationTypes.contains(-1) && \!alterationTypes.contains(0) && \!alterationTypes.contains(1)/!alterationTypes.contains(0)/' /cbioportal/src/main/java/org/cbioportal/legacy/service/impl/DiscreteCopyNumberServiceImpl.java
+RUN sed -i 's/\!alterationTypes.contains(CNA.HETLOSS) && \!alterationTypes.contains(CNA.DIPLOID) && \!alterationTypes.contains(CNA.GAIN)/!alterationTypes.contains(CNA.DIPLOID)/' /cbioportal/src/main/java/org/cbioportal/legacy/service/impl/DiscreteCopyNumberServiceImpl.java
 
-RUN mvn -DskipTests -Dfrontend.version=0.3.0 -Dfrontend.groupId=com.github.cbioportal clean install package
+RUN mvn -DskipTests -Dfrontend.version=0.3.0 -Dfrontend.groupId=io.github.cbioportal clean install package
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*-exec.jar)
 
 WORKDIR /cbioportal/core
+RUN rm -rf /root/.m2/repository/xml-apis/xml-apis-ext/1.3.04 && \
+    mkdir -p /root/.m2/repository/xml-apis/xml-apis-ext/1.3.04 && \
+    wget -qO /root/.m2/repository/xml-apis/xml-apis-ext/1.3.04/xml-apis-ext-1.3.04.jar \
+    https://repo1.maven.org/maven2/xml-apis/xml-apis-ext/1.3.04/xml-apis-ext-1.3.04.jar
 RUN mvn -DskipTests install package
 
 FROM docker.io/alpine:3.21.3
@@ -68,8 +73,8 @@ ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk
 RUN mkdir -p /cbioportal && chown -R cbioportal:cbioportal /cbioportal && mkdir /core
 
 #Download core files
-COPY --from=build /cbioportal/core/target/core-1.0.7.jar /core
-RUN cd /core ; jar -xf core-1.0.7.jar scripts/ requirements.txt ; chmod -R a+x scripts/ ; cd ..;
+COPY --from=build /cbioportal/core/core-1.0.15.jar /core
+RUN cd /core ; jar -xf core-1.0.15.jar scripts/ requirements.txt ; chmod -R a+x scripts/ ; cd ..;
 #RUN sed -i "s/connection_kwargs\['ssl_mode'\] = 'DISABLED'//" /core/scripts/importer/cbioportal_common.py
 
 # copy over core jar and scripts

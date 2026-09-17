@@ -1,6 +1,6 @@
 services:
   cbioportal:
-    image: docker.io/cbioportal/cbioportal:6.0.16
+    image: docker.io/cbioportal/cbioportal:6.4.4
     command: [
       "java",
       "-Xms2g",
