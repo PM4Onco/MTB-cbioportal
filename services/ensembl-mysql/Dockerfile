@@ -24,7 +24,7 @@ RUN gunzip *.gz
 #       it has been declared, those changes will be discarded.
 RUN ["/home/docker-entrypoint.sh", "mysqld", "--datadir", "/initialized-db", "--aria-log-dir-path", "/initialized-db"]
 
-FROM mariadb:11.3.2
+FROM mariadb:11.8.9
 LABEL maintainer="Niklas Reimer <niklas.reimer@uksh.de>"
 
 COPY --from=builder /initialized-db /var/lib/mysql
