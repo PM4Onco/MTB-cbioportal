@@ -83,7 +83,29 @@ If the system is limited in I/O capabilities, a timeout might occur. This timeou
 COMPOSE_HTTP_TIMEOUT=200 docker compose up -d
 ```
 
-After the command is complete it should be possible to access cBioPortal on your machine using the webbrowser on the previously specified port.
+If this is the first time cbioportal is started, it will first load the seed database. This might take a few minutes. You can check the status via:
+
+```
+docker logs cbioportal_container
+```
+
+you will see the line:
+
+```
+Database not available yet (first time can take a few minutes to load seed database)... Attempting reconnect...
+```
+
+The process is finished if you see:
+
+```
+Database connection success
+Migrating database if necessary...
+[...]
+Everything up to date, nothing to migrate.
+Finished.
+```
+
+Now it should be possible to access cBioPortal on your machine using the webbrowser on the previously specified port.
 When using a remote machine and a rootless container environment like Podman, it might be neccessary to add the port to the firewall.
 
 ### 5. Importing data
