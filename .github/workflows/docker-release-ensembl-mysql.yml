@@ -47,7 +47,7 @@ jobs:
             type=raw,value=latest
 
       - name: ensembl-mysql Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./services/ensembl-mysql
           platforms: linux/amd64

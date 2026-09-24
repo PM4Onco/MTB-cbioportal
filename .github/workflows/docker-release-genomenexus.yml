@@ -36,7 +36,7 @@ jobs:
             type=raw,value=latest
 
       - name: genome-nexus Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./services/genome-nexus
           platforms: linux/amd64,linux/arm64
