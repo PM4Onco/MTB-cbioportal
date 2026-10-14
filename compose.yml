@@ -1,4 +1,0 @@
-include:
-  - path:
-      - ./compose/base.yml
-      - ./compose/${FLAVOR:-mtb}.yml

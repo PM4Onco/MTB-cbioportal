@@ -1,5 +1,5 @@
 {
   "cancerdrugsUrl": "https://componc.github.io/cancerdrugs",
   "cancerdrugsJsonUrl": "https://componc.github.io/cancerdrugs/data/drugs/",
-  "local_ct_enabled": false
+  "local_ct_enabled": true
 }

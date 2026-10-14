@@ -1,0 +1,117 @@
+name: mtb-cbioportal-v7
+
+services:
+  cbioportal:
+    restart: unless-stopped
+    image: ${DOCKER_IMAGE_CBIOPORTAL}
+    container_name: cbioportal-container
+    env_file: .env
+    environment:
+      SERVER_PORT: ${CBIOPORTAL_SERVER_PORT}
+    entrypoint: ["/cbioportal/entrypoint.sh"]
+    volumes:
+      - ./study:/study/
+      - ./entrypoint.sh:/cbioportal/entrypoint.sh
+      - ${APPLICATION_PROPERTIES_PATH:-./config/application.properties}:/cbioportal-webapp/application.properties:ro
+      - ./config/frontend.json:/cbioportal/frontend.json:ro
+      - ./config/${LOGO:-pm4onco.png}:/cbioportal-webapp/images/${LOGO:-pm4onco.png}:ro
+      # metaImport.py erwartet das Skript unter $PORTAL_HOME
+      - ./data/populate_derived_tables.sql:/cbioportal/populate_derived_tables.sql:ro
+    depends_on:
+      cbioportal-database:
+        condition: service_healthy
+      cbioportal-migration:
+        condition: service_completed_successfully
+      cbioportal-session:
+        condition: service_started
+    networks: [cbio-net]
+    command: >-
+      /bin/sh -c "java ${JAVA_MEM_OPTS}
+      -Dfrontend.config=/cbioportal/frontend.json
+      -Dgenomenexus.url=${GENOMENEXUS_URL}
+      -Doncokb.public_api.url=${ONCOKB_URL}
+      -Doncokb.token=${ONCOKB_TOKEN}
+      -Dquick_search.enabled=true
+      -Dshow.civic=false
+      -Dskin.right_logo=${LOGO:-pm4onco.png}
+      -cp '/cbioportal-webapp:/cbioportal-webapp/lib/*'
+      org.cbioportal.PortalApplication
+      --spring.config.location=file:/cbioportal-webapp/application.properties
+      --authenticate=false
+      --session.service.url=http://cbioportal-session:5001/api/sessions/my_portal/
+      --clickhouse_mode=true --spring.profiles.active=clickhouse"
+
+  cbioportal-database:
+    restart: unless-stopped
+    image: ${DOCKER_IMAGE_CLICKHOUSE}
+    container_name: cbioportal-database-container
+    env_file: .env
+    volumes:
+      - ./data/schema.sql:/data/schema.sql:ro
+      - ./data/load_schema.sh:/docker-entrypoint-initdb.d/001_load_schema.sh:ro
+      - ./data/seed.sql.gz:/data/seed.sql.gz:ro
+      - ./data/load_seed.sh:/docker-entrypoint-initdb.d/002_load_seed.sh:ro
+      - ./data/populate_derived_tables.sql:/data/populate_derived_tables.sql:ro
+      - ./data/load_derived_tables.sh:/docker-entrypoint-initdb.d/003_load_derived_tables.sh:ro
+      - cbioportal_clickhouse_data:/var/lib/clickhouse
+    networks: [cbio-net]
+    healthcheck:
+      test: ["CMD-SHELL", "clickhouse-client --host \"$$(hostname)\" --user=$$CLICKHOUSE_USER --password=$$CLICKHOUSE_PASSWORD --query=\"SELECT COUNT(*) FROM $$CLICKHOUSE_DB.type_of_cancer\" 2>/dev/null | grep -q '^[1-9]'"]
+      interval: 10s
+      timeout: 3s
+      retries: 300
+      start_period: 5m
+
+  # Kurzlebig: wendet ausstehende Schema-Migrationen an (offizieller Job aus dem cBioPortal-Image)
+  cbioportal-migration:
+    image: ${DOCKER_IMAGE_CBIOPORTAL}
+    container_name: cbioportal-migration-container
+    env_file: .env
+    depends_on:
+      cbioportal-database:
+        condition: service_healthy
+    networks: [cbio-net]
+    entrypoint: ["python3", "/cbioportal/db-scripts/clickhouse/migrate/migrate_db.py", "--populate-derived-tables"]
+    restart: "no"
+
+  cbioportal-session:
+    restart: unless-stopped
+    image: ${DOCKER_IMAGE_SESSION_SERVICE}
+    container_name: cbioportal-session-container
+    env_file: .env
+    environment:
+      SERVER_PORT: ${SESSION_SERVICE_SERVER_PORT}
+      JAVA_OPTS: ${SESSION_SERVICE_JAVA_OPTS}
+    depends_on: [cbioportal-session-database]
+    networks: [cbio-net]
+
+  cbioportal-session-database:
+    restart: unless-stopped
+    image: mongo:4.2
+    container_name: cbioportal-session-database-container
+    env_file: .env
+    volumes:
+      - cbioportal_mongo_data:/data/db
+    networks: [cbio-net]
+
+  cbioproxy:
+    restart: unless-stopped
+    image: ${DOCKER_IMAGE_PROXY}
+    container_name: cbioproxy-container
+    ports:
+      - "${PORT:-8080}:8080"
+    volumes:
+      - ./services/cbioproxy/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./config/attributes.json:/data-files/attributes.json:ro
+      - ./config/localCT.json:/data-files/localCT.json:ro
+      - ./data/tumorTypes.json:/data-files/tumorTypes.json:ro
+      - ./reports:/usr/share/reports:ro
+    depends_on: [cbioportal]
+    networks: [cbio-net]
+
+networks:
+  cbio-net:
+
+volumes:
+  cbioportal_clickhouse_data:
+  cbioportal_mongo_data:

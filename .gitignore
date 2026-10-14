@@ -28,3 +28,5 @@ tools/MtbImporter/processed/**
 tools/MtbImporter/mapper/**
 !tools/MtbImporter/mapper/.gitkeep
 tools/MtbImporter/settings.yaml
+
+.AGENTS/**

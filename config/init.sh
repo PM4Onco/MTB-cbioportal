@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-cat /cbioportal-webapp/application.properties.EXAMPLE | \
-    sed 's/spring.datasource.username=.*/spring.datasource.username=cbio/g' | \
-    sed 's/spring.datasource.password=.*/spring.datasource.password='"$MYSQL_USER_PASSWORD"'/g' | \
-    sed 's|spring.datasource.url=.*|spring.datasource.url=jdbc:mysql://cbioportal_database:3306/cbioportal|g' \
+VERSION=$(grep DOCKER_IMAGE_CBIOPORTAL ../.env | tail -n 1 | cut -d '=' -f 2-)
+
+# This is a hack. Docker run doesn't escape '&' but docker compose does.
+sed 's/&/\\&/g' ../.env > ../.env.temp
+
+docker run --rm -i --env-file ../.env.temp $VERSION bin/sh -c 'cat /cbioportal-webapp/application.properties |
+    sed "s|spring.datasource.password=.*|spring.datasource.password=${CLICKHOUSE_PASSWORD}|" | \
+    sed "s|spring.datasource.username=.*|spring.datasource.username=${CLICKHOUSE_USER}|" | \
+    sed "s|spring.datasource.url=.*|spring.datasource.url=${CLICKHOUSE_URL}|" | \
+    sed "s|.*spring.datasource.clickhouse.username=.*|spring.datasource.clickhouse.username=${CLICKHOUSE_USER}|" | \
+    sed "s|.*spring.datasource.clickhouse.password=.*|spring.datasource.clickhouse.password=${CLICKHOUSE_PASSWORD}|" | \
+    sed "s|.*spring.datasource.clickhouse.url=.*|spring.datasource.clickhouse.url=${CLICKHOUSE_URL}|"' \
 > application.properties
-cp /cbioportal-webapp/security.properties.EXAMPLE security.properties
-cp /etc/ssl/certs/java/cacerts cacerts
-keytool -import -trustcacerts -keystore cacerts -storepass changeit -noprompt -alias keycloak -file /config/keycloak.pem
+
+# Cleanup for the hack above
+rm ../.env.temp
