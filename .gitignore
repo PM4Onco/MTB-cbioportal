@@ -30,3 +30,6 @@ tools/MtbImporter/mapper/**
 tools/MtbImporter/settings.yaml
 
 .AGENTS/**
+
+demo.tar.gz
+.posit/

@@ -1,0 +1,7 @@
+# Optional: ersetzt das Frontend des Images durch einen lokalen Build.
+# FRONTEND_DIST steht in .env (Vorlage: .env.example).
+# Start: docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d cbioportal
+services:
+  cbioportal:
+    volumes:
+      - ${FRONTEND_DIST:?FRONTEND_DIST nicht gesetzt}:/cbioportal-webapp/reactapp:ro
