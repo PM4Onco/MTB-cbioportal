@@ -33,3 +33,6 @@ tools/MtbImporter/settings.yaml
 
 demo.tar.gz
 .posit/
+
+# Lokale Teststudie mit PROM-Daten (EQ-5D-5L), nicht Teil des Repos
+study/prom_testpatient/
