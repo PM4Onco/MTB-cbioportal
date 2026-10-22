@@ -15,9 +15,9 @@ FROM docker.io/maven:3-eclipse-temurin-21 as build
 
 ARG VERSION=6.0.16
 
-RUN git clone --single-branch --branch release$VERSION https://github.com/pm4onco/cbioportal-frontend.git /frontend
-WORKDIR /frontend
-RUN mvn clean install
+# RUN git clone --single-branch --branch release$VERSION https://github.com/pm4onco/cbioportal-frontend.git /frontend
+# WORKDIR /frontend
+# RUN mvn clean install
 
 RUN git clone --single-branch --branch v$VERSION https://github.com/cbioportal/cbioportal.git /cbioportal
 WORKDIR /cbioportal
@@ -34,7 +34,7 @@ RUN sed -i 's/(-2, 2)/(-2, -1, 1, 2)/' /cbioportal/src/main/java/org/cbioportal/
 RUN sed -i 's/\!alterationTypes.contains(-1) && \!alterationTypes.contains(0) && \!alterationTypes.contains(1)/!alterationTypes.contains(0)/' /cbioportal/src/main/java/org/cbioportal/service/impl/DiscreteCopyNumberServiceImpl.java
 RUN sed -i 's/\!alterationTypes.contains(CNA.HETLOSS) && \!alterationTypes.contains(CNA.DIPLOID) && \!alterationTypes.contains(CNA.GAIN)/!alterationTypes.contains(CNA.DIPLOID)/' /cbioportal/src/main/java/org/cbioportal/service/impl/DiscreteCopyNumberServiceImpl.java
 
-RUN mvn -DskipTests -Dfrontend.version=0.3.0 -Dfrontend.groupId=com.github.cbioportal clean install package
+RUN mvn -DskipTests -Dfrontend.version=185ae64eada625dafdaca0df254b9f8a170f422d -Dfrontend.groupId=com.github.marcoschndlr clean install package
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*-exec.jar)
 
 WORKDIR /cbioportal/core

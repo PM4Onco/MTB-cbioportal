@@ -69,6 +69,9 @@ services:
       FHIRSPARK_FHIRBASE: http://hapiserver:8080/fhir
       FHIRSPARK_PORTALURL: http://cbioportal:8080/
       FHIRSPARK_LOGINREQUIRED: ${LOGINREQUIRED:-false}
+      FILESERVER_URL: http://minio:9000
+      FILESERVER_ACCESS_KEY: ${FILESERVER_ACCESS_KEY:-access}
+      FILESERVER_SECRET_KEY: ${FILESERVER_SECRET_KEY:-secret}
     volumes:
       - ./../data/drugs.json:/drugs.json:Z
       - ./../data/hgnc.csv:/hgnc.csv:Z
@@ -105,6 +108,21 @@ services:
       POSTGRES_DB: hapi
     networks:
       - cbioportal_net
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-cbioportal}
+    volumes:
+      - 'minio_data:/data'
+    networks:
+      - cbioportal_net
+    command: server /data --console-address ":9001"
 
 volumes:
   fhir_data:
+  minio_data:
