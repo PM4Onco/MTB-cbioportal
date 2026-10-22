@@ -1,6 +1,6 @@
-cancer_study_identifier: Patient_example
+cancer_study_identifier: patient_example
 genetic_alteration_type: COPY_NUMBER_ALTERATION
 datatype: SEG
 reference_genome_id: hg19
 description: Somatic CNA data (copy number ratio from tumor samples minus ratio from matched normals) from TCGA.
-data_filename: somaticGermline_Patient_example_CNV.seg
+data_filename: somatic_germline_patient_example_cnv.seg

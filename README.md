@@ -8,71 +8,65 @@ Installation is described [here](./INSTALL.md)
 
 ## Building images yourself
 
-All images with a `ghcr.io/pm4onco/` prefix can be rebuilt using the following command:
+The `pm4onco/cbioportal` image (backend + importer + frontend bundle) can be rebuilt reproducibly from pinned core and frontend commits with:
 ```
-FLAVOR=dev docker compose build <service>
+tools/build-image.sh [tag]
 ```
-
-Such are marked in the table down below.
+(default tag `7.1.1-ukf`; the core/frontend checkouts and commits are overridable via `CORE_DIR`, `FRONTEND_DIR`, `CORE_COMMIT`, `FRONTEND_COMMIT`, see the script header). The other images (ClickHouse, session service, MongoDB, OpenResty) are pulled from their public registries and versioned in `.env`.
 
 ## Upgrading from previous releases
 
 When upgrading MTB-cBioPortal we *highly* suggest that you purge all volumes as it is likely that the database server is upgraded to a new major version and the cBioPortal seed database has been updated. 
 **This will result in a complete loss of all data that hasn't been backed up before!** As cBioPortal loads it's data from disk, you should still have this saved on disk. You can import the data again in the new version.
 
-The only part that needs a database backup is the HAPI FHIR server. For that please follow these steps:
+The 7.1.x release uses ClickHouse instead of MariaDB. If you are upgrading from a 6.x release, the existing studies must be re-imported into the new ClickHouse database after the switch (cBioPortal data is stored in the ClickHouse volume, which cannot be migrated from MariaDB). For that please follow these steps:
 
-1. Make a Backup of the HAPI FHIR database using `sudo docker compose exec hapi-postgres pg_dumpall -U hapiserver > dump.sql`
-2. Extract the *hapi* database using `sed '/\\connect hapi/,$!d' dump.sql > dump_hapi.sql`
-3. Verify that the newly created `dump_hapi.sql` file looks alright.
-4. Move the files `dump.sql` and `dump_hapi.sql` as well the directories `reports` and `study`to a different location.
-4. Stop all services of MIRMTBACUM-cbioportal using `docker compose down -v` **This will permanently delete all volume data, so you now rely on the backup you created in step 1!**
-5. Delete the MTB-cbioportal directory and make a fresh clone of the git repository using `git clone https://github.com/pm4onco/MTB-cbioportal.git`
-6. Copy dump.sql and dump_hapi.sql to the MTB-cbioportal directory
-7. Start the Postgres database using `docker compose up -d hapi-postgres`
-8. Import the `dump_hapi.sql` using the following command
-`docker compose exec -T hapi-postgres psql -U hapiserver -d hapi < dump_hapi.sql`
-9. Proceed with step 2 of the installation as shown in [INSTALL.md](./INSTALL.md)
+1. Move the directories `reports` and `study` to a different location.
+2. Stop all services using `docker compose down -v` **This will permanently delete all volume data!**
+3. Delete the MTB-cbioportal directory and make a fresh clone of the git repository using `git clone https://github.com/pm4onco/MTB-cbioportal.git`
+4. Copy `reports` and `study` back into the MTB-cbioportal directory
+5. Proceed with the installation as shown in [INSTALL.md](./INSTALL.md)
 
 ## Components
 
 - OpenResty Reverse Proxy
-  - cBioPortal
-    - MariaDB Server
+  - cBioPortal (ClickHouse)
+    - ClickHouse Server
     - cBioPortal Session Service
       - Mongo DB
-  - FhirSpark
-    - HAPI FHIR Server
-      - PostgreSQL Server
-  - Genome Nexus
-    - Mongo DB
-    - Ensembl REST API
-      - MariaDB Server
+  - Reports (local PDF files, study-level access check via cBioPortal)
 
-![MTB-cbioportal components](images/components.png)
+The 6.x components FhirSpark, HAPI FHIR Server, PostgreSQL, Genome Nexus and Ensembl REST API are no longer part of the deployment; mutation annotation is provided by the public [Genome Nexus](https://www.genomenexus.org) instance (configurable via `GENOMENEXUS_URL` in `.env`).
 
 ## Ports
 
-| Service | Path (behind OpenResty) | Port (FLAVOR=dev) | Image |
+| Service | Path (behind OpenResty) | Port (dev overlay) | Image |
 | - | - | - | - |
-| OpenResty  | / | 8080 | ghcr.io/pm4onco/cbioroxy |
-| cBioPortal | / | 8081 | ghcr.io/pm4onco/cbioportal |
+| OpenResty  | / | 8080 | openresty |
+| cBioPortal | / | 8081 | pm4onco/cbioportal |
 | cBioPortal Debugger | - | 5005 | - |
-| cBioPortal DB | - | 3306 | mariadb |
-| Session Service | - | 5000 | cbioportal/session-service |
+| ClickHouse | - | 8123, 9000 | clickhouse |
+| Session Service | - | - | cbioportal/session-service |
 | Session Service DB | - | 27017 | mongo |
-| FhirSpark | /mtb/ | 3001 | ghcr.io/pm4onco/fhirspark |
-| HAPI FHIR Server | /fhir/ | 8082 | hapiproject/hapi |
-| PostgreSQL Server | - | 5432 | postgres |
-| Genome Nexus | /genome-nexus | 8888 | ghcr.io/pm4onco/genome-nexus |
-| Genome Nexus DB | - | 27018 | genomenexus/gn-mongo |
-| Ensembl REST API | - | 8083 | nr205/ensembl-rest |
-| Ensembl REST API DB | - | - | ghcr.io/pm4onco/ensembl-mysql |
+
+By default only the OpenResty port (8080) is published. The ports in the *dev overlay* column are additionally exposed by the optional debug overlay `docker-compose.dev.yml` (see below).
 
 
 ## Debugging
 
-Debugging of the backend can be done by attaching a debugger to it. For VisualStudio Code the MSKCC provides an [example configuration](https://github.com/cBioPortal/cbioportal/blob/master/README.md#%EF%B8%8F%EF%B8%8F-debugging).
+Debugging of the backend can be done by attaching a debugger to it. Start cBioPortal with the debug overlay to enable a JDWP remote debugger on port 5005 (and to expose the cBioPortal and database ports listed above):
+
+```
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d cbioportal
+```
+
+The JDWP agent is passed via `JAVA_TOOL_OPTIONS`, so no change to the container command is needed. For VisualStudio Code the MSKCC provides an [example configuration](https://github.com/cBioPortal/cbioportal/blob/master/README.md#%EF%B8%8F%EF%B8%8F-debugging).
+
+To test a local frontend build, use the frontend overlay `docker-compose.frontend.yml` (requires `FRONTEND_DIST` set in `.env`):
+
+```
+docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d cbioportal
+```
 
 ## License
 All code from MTB-cBioPortal is published under the [GNU AGPL v3 License](./LICENSE).

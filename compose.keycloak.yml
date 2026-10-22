@@ -1,0 +1,42 @@
+# Keycloak-Overlay. Ohne dieses File: No-Auth-Modus wie zuvor.
+# Benoechtigt zwei lokal anzulegende, gitignored Dateien:
+#   config/keycloak/realm-mtb.json  (Keycloak-Realm zum Import)
+#   config/security.properties      (OAuth2-Client-Konfiguration, siehe INSTALL.md)
+# Die Host-URLs (KC_HOSTNAME_URL) und security.properties an die eigene Instanz anpassen.
+services:
+  cbioportal:
+    volumes:
+      - ./config/security.properties:/cbioportal-webapp/security.properties:ro
+    depends_on:
+      keycloak:
+        condition: service_started
+    command: >-
+      /bin/sh -c "java ${JAVA_MEM_OPTS}
+      -Dfrontend.config=/cbioportal/frontend.json
+      -Dgenomenexus.url=${GENOMENEXUS_URL}
+      -Doncokb.public_api.url=${ONCOKB_URL}
+      -Doncokb.token=${ONCOKB_TOKEN}
+      -Dquick_search.enabled=true
+      -Dshow.civic=false
+      -Dskin.right_logo=${LOGO:-pm4onco.png}
+      -cp '/cbioportal-webapp:/cbioportal-webapp/lib/*'
+      org.cbioportal.PortalApplication
+      --spring.config.location=file:/cbioportal-webapp/application.properties,file:/cbioportal-webapp/security.properties
+      --authenticate=oauth2
+      --session.service.url=http://cbioportal-session:5001/api/sessions/my_portal/
+      --clickhouse_mode=true --spring.profiles.active=clickhouse"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.0
+    container_name: keycloak-test-container
+    command: ["start-dev", "--import-realm", "--http-port=8080"]
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_URL: http://localhost:18080
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
+    volumes:
+      - ./config/keycloak/realm-mtb.json:/opt/keycloak/data/import/realm-mtb.json:ro
+    ports:
+      - "18080:8080"
+    networks: [cbio-net]

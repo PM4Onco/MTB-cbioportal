@@ -3,4 +3,4 @@
 #STRING	STRING
 #1	1
 PATIENT_ID	SAMPLE_ID
-Patient_example	Patient_example_TD
+patient_example	patient_example_TD

@@ -15,10 +15,7 @@ Using HTTPS also requires:
 1. A reverse proxy that will terminate the HTTPS of the cBioPortal instance (preferrably nginx)
 2. A DNS name for cBioPortal with a **full chain** webserver certificate
 
-Using Keycloak is only supported when using HTTPS but also requires:
-
-1. A Keycloak instance with HTTPS
-2. An export of the Keycloaks **full chain** webserver certificate 
+Authentication with Keycloak is provided by a container that the deployment starts alongside cBioPortal (see "Add authentication (Keycloak)"); it works without HTTPS for testing, for production a reverse proxy with certificates in front of both services is strongly recommended.
 
 It is recommended to start with a setup without authentication and add that later on.
 
@@ -27,8 +24,9 @@ It is recommended to start with a setup without authentication and add that late
 ### 1. Clone the git repository
 
 ```
-git clone https://github.com/pm4onco/MTB-cbioportal.git
+git clone https://github.com/PM4Onco/MTB-cbioportal.git
 cd MTB-cbioportal
+git checkout 7.1.1-ukf
 ```
 
 ### 2. Derive environment from the default
@@ -37,31 +35,23 @@ cd MTB-cbioportal
 cp .env.example .env
 ```
 
-Start editing the `.env` file with a text editor. By default the installation will point to a release with a fixed tag. Using the `latest` tag may provide more features but can also result in unexpected errors.
+Start editing the `.env` file with a text editor. By default the installation points to the fixed 7.1.1 release (`DOCKER_IMAGE_CBIOPORTAL`). The image is built reproducibly from pinned core and frontend commits (see the "Building images yourself" section in [README.md](./README.md)).
 
 Using OncoKB will all annotations requires a token that can be obtained [here](https://www.oncokb.org/apiAccess). This must be entered into the `.env` file as well as the `#` before the parameter `ONCOKB_URL` removed.
 
 By default MTB-cbioportal is exposed on port 8080, if that one is not available, please change it in the `.env` file.
 
-If the network requires a proxy, please use the parameter `HTTPS_PROXY_PORT`.
+If the network requires a proxy, please use the parameter `HTTPS_PROXY_PORT`. (Note: the 7.1.1 stack does not pass an outbound proxy to the containers itself; external services such as Genome Nexus and OncoKB are reached from the host network, and the variable is kept for the planned Keycloak integration.)
 
-Please set the password for the databases **now** in the `.env` file. They will be written to config files and the databases will initialize with the provided value. Changing this afterwards must be done manually!
+Please set the ClickHouse password **now** in the `.env` file (`CLICKHOUSE_PASSWORD`). It will be written to `config/application.properties` by the initialization step below and the database will initialize with the provided value. Changing this afterwards must be done manually!
 
 ### 3. Initialize config files
 
 ```
-docker compose -f init.yml run --rm cbioportal
+./init.sh
 ```
 
-for a network without proxy and
-
-```
-docker compose -f init.yml run --rm -e https_proxy=http://proxyurl:port cbioportal
-```
-
-for a network with proxy.
-
-This will download the SQL files to initalize the cBioPortal database and also initialize the config file for the database.
+The script generates `config/application.properties` (with the ClickHouse credentials from `.env`) and extracts the ClickHouse schema, seed data and derived-table SQL from the pinned cBioPortal image. It requires Docker and internet access, as well as a `.env` file.
 
 The application's Docker container are running as `root` user. If you are not the `root` user, you may want to change the permissions of the `data/` directory with e.g.:
 
@@ -71,7 +61,7 @@ sudo chmod 755 data/
 
 ### 4. Starting MTB-cbioportal
 
-Now start MTB-cBioPortal. 
+Now start MTB-cBioPortal. The first start can take several minutes: the ClickHouse container loads the schema, the seed database and the derived tables before cBioPortal starts.
 
 ```
 docker compose up -d
@@ -91,20 +81,27 @@ When using a remote machine and a rootless container environment like Podman, it
 To import one of the provided test data sets use the following command
 
 ```
-docker compose exec cbioportal metaImport.py -u http://cbioportal:8080 -s study/testpatient -o
+docker compose exec cbioportal python3 /core/scripts/importer/metaImport.py -u http://cbioportal:8080 -s /study/testpatient -o
 ```
 
-The adress here doesn't require any change, as it's being called from inside the container.
+The address here doesn't require any change, as it's being called from inside the container. The `-o` flag overwrites an existing study with the same ID; a previously imported study can be removed via the REST API (`DELETE /api/studies/<stableId>`).
+
+### Optional: overriding the frontend bundle
+
+By default the frontend bundle is part of the cBioPortal image. To test a local frontend build instead, set `FRONTEND_DIST` in `.env` (path relative to this directory, e.g. `../cbioportal-frontend/dist/reactapp`) and start with the additional override file:
+
+```
+docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d cbioportal
+```
 
 ## Add HTTPS
 
 Adding HTTPS to MTB-cBioPortal requires a reverse proxy that terminates HTTPS. 
 
-It must set the following headers, so that URLs are being constructed correctly:
+It must set the following header, so that URLs are being constructed correctly:
 
 ```
 X-Forwarded-Proto
-X-Forwarded-Port
 ```
 
 Using nginx is recommended but Apache or Traefik will also work. A very simple nginx config for this can look like this: 
@@ -130,7 +127,6 @@ server
 		proxy_busy_buffers_size 256k;
 		proxy_set_header Host $http_host;
 		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_set_header X-Forwarded-Port $server_port;
 		proxy_set_header X-Real-IP $remote_addr;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
@@ -153,106 +149,96 @@ server
 
 Adding the reverse proxy doesn't require a restart of cBioPortal and should 
 
-## Add authentication
+## Add authentication (Keycloak)
 
-The final cherry on top is the authentication. For this a working cBioPortal instance with HTTPs is mandatory.
+Authentication is provided by a Keycloak container that is started together with cBioPortal via an overlay file. The stack works in two modes:
 
-### 1. Set up Keycloak
+- **No-Auth (default):** `docker compose up -d` — no login, `/reports/` is served without checks.
+- **OAuth2:** `docker compose -f docker-compose.yml -f compose.keycloak.yml up -d` — Keycloak starts alongside cBioPortal, all portal access requires a login, and `/reports/` files are only reachable by users that have access to the corresponding study.
 
-It is recommended to set up a dedicated realm in keycloak for cBioPortal, even though it is not neccessary. However, it is strongly advides not to use the master realm!
+The OAuth2 mode is supported **without HTTPS** (Keycloak and cBioPortal talk over the internal docker network). In production a reverse proxy with a full-chain certificate in front of both services is still strongly recommended.
 
-#### Importing clients
+### 1. Prepare the Keycloak configuration
 
-The following instructions assume that Keycloak runs at `https://mykeycloak.de` and cBioPortal runs at `https://mycbioportal.de`
+Two files that are *not* part of the repository have to be created in the checkout (both are gitignored on purpose):
 
-Login to Keycloak, select the desired realm and click on *Clients*. Then hit the *Import client* button.
-
-![Import Client 1](images/importClient1.png)
-
-Now hit the *Browse...* button and select the `cbioportal_client_export.json` from the `conf` directory of MTB-cbioportal.
-
-![Import Client 2](images/importClient2.png)
-
-
-If desired the client *Cliend ID* can be changed now, the rest will be modified later.
-Click the save button.
-
-![Import Client 3](images/importClient3.png)
-
-The first step is configuring the cbioportal client. Click on the *Clients* section and open the cbioportal client.
-
-Adjust the *Root URL*, *Valid redirect URIs* and *Admin URL*. Replace `https://mycbioportal.de` with the URL of your HTTPS-enabled cBioPortal. Make sure to keep the `/*` and the end of the redirect URI. If this is not set correctly Keycloak will refuse to offer a login prompt.
-
-Click the *Save* button to save the new URLs. 
-
-![Client URL](images/clientUrl.png)
-
-Repeat the same process with the `fhirspark_client_export.json` file.  The credentials will later be used as `KEYCLOAK_SECRET_FHIRSPARK` in step 3.
-
-#### Exporting client roles
-
-Navigate to to the *Client scopes* section of the realm and click *roles*.
-
-![Client roles 1](images/clientRoles1.png)
-
-Switch to the *Mappers* tab and hit *client roles*.
-
-![Client roles 2](images/clientRoles2.png)
-
-Make sure that *Add to userinfo* is enabled.
-
-![Client roles 3](images/clientRoles3.png)
-
-### 2. Setup MTB-cbioportal
-
-Replace the `keycloak.pem` file in the `config` directory with the webserver certificate from keycloak. 
+**`config/security.properties`** — the OAuth2 client configuration. Adjust the two `localhost` URLs to your cBioPortal host name and set `client-secret` to the client secret of your Keycloak client (`local-test-secret` works out of the box when using the reference realm from step 2):
 
 ```
-LOGINREQUIRED=true
-AUTHENTICATE=oauth2
-EXCLUDE_AUTOCONFIG=
-CBIOPORTAL_URL=https://mycbioportal.de
-KEYCLOAK_REALM=https://mykeycloak.de/auth/realms/mtb
-KEYCLOAK_CLIENT_CBIOPORTAL=cbioportal
-KEYCLOAK_SECRET_CBIOPORTAL=mysecret
-KEYCLOAK_CLIENT_FHIRSPARK=fhirspark
-KEYCLOAK_SECRET_FHIRSPARK=mysecret
+spring.security.oauth2.roles-path.client-id=cbioportal
+spring.security.oauth2.client.registration.cbio-idp.client-id=cbioportal
+spring.security.oauth2.client.registration.cbio-idp.client-secret=<client-secret>
+spring.security.oauth2.client.registration.cbio-idp.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.cbio-idp.client-authentication-method=client_secret_basic
+spring.security.oauth2.client.registration.cbio-idp.redirect-uri=http://<cbioportal-host>:8080/login/oauth2/code/cbio-idp
+spring.security.oauth2.client.registration.cbio-idp.scope=openid,email,roles
+spring.security.oauth2.client.provider.cbio-idp.user-name-attribute=email
+spring.security.oauth2.client.provider.cbio-idp.authorization-uri=http://<keycloak-host>:18080/realms/mtb/protocol/openid-connect/auth
+spring.security.oauth2.client.provider.cbio-idp.token-uri=http://keycloak:8080/realms/mtb/protocol/openid-connect/token
+spring.security.oauth2.client.provider.cbio-idp.user-info-uri=http://keycloak:8080/realms/mtb/protocol/openid-connect/userinfo
+spring.security.oauth2.client.provider.cbio-idp.jwk-set-uri=http://keycloak:8080/realms/mtb/protocol/openid-connect/certs
+always_show_study_group=PUBLIC
+filter_groups_by_appname=false
 ```
 
-If data access via tokens to query the API (see docs [here](https://docs.cbioportal.org/web-api-and-clients/)) shall be enabled, set
+Note: `redirect-uri` and `authorization-uri` use the *browser-visible* host names, while `token-uri`, `user-info-uri` and `jwk-set-uri` stay on `keycloak:8080`, because they are resolved *inside* the cBioPortal container.
+
+**Realm file** — the overlay `compose.keycloak.yml` imports a Keycloak realm from `config/keycloak/realm-mtb.json` (path relative to the checkout). The reference realm used for testing contains:
+
+- realm `mtb`, client `cbioportal` (client ID `cbioportal`, standard flow, client secret mode), client role `MTB_TEST` exposed in the `userinfo` token
+- test users `mtb-allowed` (password `test-allowed`, has role `MTB_TEST`) and `mtb-denied` (password `test-denied`, no role)
+- Keycloak admin: `admin` / `admin` (change for production)
+
+For an existing Keycloak server instead of the bundled one, adapt the realm import volume in `compose.keycloak.yml` and the realm URLs in `security.properties` accordingly.
+
+### 2. Set study groups **before** switching to authentication
+
+This is the most common pitfall: **`public=1` alone does not grant access once OAuth2 is active.** A study is visible to a user only if one of the client roles in the user's token matches one of the comma-separated values in the `groups` column of `meta_study.txt`. A study with `public=1` and an empty `groups` column is hidden from *everyone* after the switch.
+
+So, before starting with authentication, make sure every `meta_study.txt` that shall be visible lists the intended groups, and import the studies now (while the API is still open):
 
 ```
-DATA_ACCESS_TOKEN=oauth2
+docker compose exec cbioportal python3 /core/scripts/importer/metaImport.py -u http://cbioportal:8080 -s /study/<study> -o
 ```
 
-Shut down all services using
+After switching to OAuth2, no re-import is needed.
+
+### 3. Switch to the OAuth2 stack
+
 ```
 docker compose down
+docker compose -f docker-compose.yml -f compose.keycloak.yml up -d
 ```
 
-Run the initialization command again, as it will add the Keycloak certificate to the trusted castore for cBioPortal.
+- cBioPortal: `http://<host>:8080` — every request redirects to the login
+- Keycloak: `http://<host>:18080` (realm `mtb`)
+
+Verify with one user that has a matching client role and one without: `/api/studies` must return the group-restricted list for the first and an empty list for the second.
+
+To go back to No-Auth:
 
 ```
-docker compose -f init.yml run --rm cbioportal
-```
-
-After that start cBioPortal again using
-```
+docker compose down
 docker compose up -d
 ```
 
-### 3. Dumping portal info
+### 4. Importing data while authentication is active
 
-The import process contains checks against available datasources in cBioPortal. As the enabled authentication blocks direct API access the required data must be exported to disk. For this use the following command
+The import process talks to the portal API, which is then protected by the login. For that the portal metadata must be dumped to disk first and passed to the importer:
 
 ```
-docker compose exec cbioportal bash /cbioportal/dumpPortalInfo.sh
+docker compose exec cbioportal perl /core/scripts/dumpPortalInfo.pl -u http://cbioportal:8080 -o /cbioportal/portalinfo/portalinfo.json
 ```
 
-Importing data must now use the provided portalinfo. The updated import command looks like this
 ```
-docker compose exec cbioportal metaImport.py -p /cbioportal/portalinfo -s study/patient_example -o
+docker compose exec cbioportal python3 /core/scripts/importer/metaImport.py -u http://cbioportal:8080 -p /cbioportal/portalinfo/portalinfo.json -s /study/<study> -o
 ```
+
+(Alternative: temporarily start without the Keycloak overlay, import, then switch back.)
+
+### 5. Reports access
+
+The proxy enforces `/reports/` access through an `auth_request` against `GET /api/studies/<study>` — a report file is only served if the logged-in user may access the study whose ID matches the directory name. Users without access get HTTP 403. In No-Auth mode this check is not applied, so `/reports/` is open there.
 
 ## Troubleshooting
 

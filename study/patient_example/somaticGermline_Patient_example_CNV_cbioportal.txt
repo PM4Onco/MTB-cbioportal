@@ -1,4 +1,4 @@
-Hugo_Symbol	Entrez_Gene_Id	Patient_example_TD
+Hugo_Symbol	Entrez_Gene_Id	patient_example_TD
 ADIPOR2	79602	2
 ACNA1C	NA	2
 ACNA1C-AS1	NA	2

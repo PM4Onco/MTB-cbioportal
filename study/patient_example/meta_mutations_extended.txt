@@ -1,8 +1,8 @@
-cancer_study_identifier: Patient_example
+cancer_study_identifier: patient_example
 stable_id: mutations
 profile_name: Mutations
 profile_description: Extended MAF
 genetic_alteration_type: MUTATION_EXTENDED
 datatype: MAF
 show_profile_in_analysis_tab: true
-data_filename: somaticGermline_Patient_example.maf
+data_filename: somatic_germline_patient_example.maf

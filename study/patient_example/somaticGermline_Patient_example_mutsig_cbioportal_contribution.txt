@@ -1,4 +1,4 @@
-ENTITY_STABLE_ID	NAME	DESCRIPTION	Patient_example_TD
+ENTITY_STABLE_ID	NAME	DESCRIPTION	patient_example_TD
 mutational_signature_contribution_AC1	AC1	spontaneous deamination	0.274031792508634
 mutational_signature_contribution_AC10	AC10	altered POL E	0
 mutational_signature_contribution_AC11	AC11	alkylating agents, temozolomide	0
