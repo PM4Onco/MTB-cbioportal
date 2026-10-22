@@ -35,6 +35,14 @@ git checkout 7.1.1-ukf
 cp .env.example .env
 ```
 
+The cBioPortal image (`DOCKER_IMAGE_CBIOPORTAL`) is a **private GHCR package** (`ghcr.io/ukf-pauli/cbioportal-image`). Once per host and user, log in to the container registry before anything else:
+
+```
+docker login ghcr.io
+```
+
+(username plus a token with *Read packages* access, e.g. a fine-grained PAT; if you run docker via `sudo`, log in as `sudo docker login ghcr.io`). All other images are public.
+
 Start editing the `.env` file with a text editor. By default the installation points to the fixed 7.1.1 release (`DOCKER_IMAGE_CBIOPORTAL`). The image is built reproducibly from pinned core and frontend commits (see the "Building images yourself" section in [README.md](./README.md)).
 
 Using OncoKB will all annotations requires a token that can be obtained [here](https://www.oncokb.org/apiAccess). This must be entered into the `.env` file as well as the `#` before the parameter `ONCOKB_URL` removed.

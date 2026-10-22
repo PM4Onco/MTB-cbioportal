@@ -11,7 +11,9 @@ CORE_COMMIT="${CORE_COMMIT:-7fd8d81}"
 CORE_BASE="d549d6ff4065e348eded87c5878ac5d1af570a6e"
 FRONTEND_COMMIT="${FRONTEND_COMMIT:-e89b644b6}"
 TAG="${1:-7.1.1-ukf}"
-IMAGE="pm4onco/cbioportal"
+# Deployment-Pull-Name (privates GHCR-Package); nach dem Build fuer einen lokalen
+# Test ohne Registry auch als "pm4onco/cbioportal:$TAG" retaggen.
+IMAGE="ghcr.io/ukf-pauli/cbioportal-image"
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT

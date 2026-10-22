@@ -8,7 +8,7 @@ Installation is described [here](./INSTALL.md)
 
 ## Building images yourself
 
-The `pm4onco/cbioportal` image (backend + importer + frontend bundle) can be rebuilt reproducibly from pinned core and frontend commits with:
+The cBioPortal image (backend + importer + frontend bundle, published as the private GHCR package `ghcr.io/ukf-pauli/cbioportal-image`) can be rebuilt reproducibly from pinned core and frontend commits with:
 ```
 tools/build-image.sh [tag]
 ```
