@@ -1,0 +1,22 @@
+# Optionales Debug-Overlay: Remote-Debugger (JDWP) für cBioPortal, Backend direkt auf 8081,
+# ClickHouse/Mongo-Ports auf den Host. Frontend-Builds sind bewusst hier NICHT dabei
+# (eigene Datei: docker-compose.frontend.yml).
+# Start: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d cbioportal
+# Debugger anbinden an localhost:5005 (z. B. IntelliJ: Remote JVM Debug).
+services:
+  cbioportal:
+    environment:
+      # Wird vom JVM automatisch eingelesen (und im Log angezeigt); vermeidet das command-Override der Haupt-Datei.
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    ports:
+      - "5005:5005"
+      - "8081:8080"
+
+  cbioportal-database:
+    ports:
+      - "8123:8123"   # ClickHouse HTTP
+      - "9000:9000"   # ClickHouse native
+
+  cbioportal-session-database:
+    ports:
+      - "27017:27017"

@@ -1,11 +1,15 @@
-# MTB-cbioportal-Image: offizielles v7.1.1 + PM4Onco-Core-Fork + eigenes Frontend.
+# MTB-cbioportal-Image: offizielles v7.1.1 + UKF-Core-Fork + eigenes Frontend.
 # Kontext wird von tools/build-image.sh erzeugt (core/, frontend/reactapp/).
 FROM cbioportal/cbioportal@sha256:47a3569824f5ffdf73f7102eda2404d0dc0e8fa71f8d9eb33972ef8ccc6319d4
 
+ARG CORE_REPO
+ARG CORE_REF
 ARG CORE_COMMIT
 ARG CORE_BASE
 ARG FRONTEND_COMMIT
-LABEL org.pm4onco.core.commit="${CORE_COMMIT}" \
+LABEL org.pm4onco.core.repo="${CORE_REPO}" \
+      org.pm4onco.core.ref="${CORE_REF}" \
+      org.pm4onco.core.commit="${CORE_COMMIT}" \
       org.pm4onco.core.base="${CORE_BASE}" \
       org.pm4onco.frontend.commit="${FRONTEND_COMMIT}"
 

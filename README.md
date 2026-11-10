@@ -8,11 +8,11 @@ Installation is described [here](./INSTALL.md)
 
 ## Building images yourself
 
-The cBioPortal image (backend + importer + frontend bundle, published as the private GHCR package `ghcr.io/ukf-pauli/cbioportal-image`) can be rebuilt reproducibly from pinned core and frontend commits with:
+The cBioPortal image (backend + importer + frontend bundle, published as the private GHCR package `ghcr.io/ukf-pauli/cbioportal-image`) can be rebuilt reproducibly from a pinned core fork ref and frontend commit with:
 ```
 tools/build-image.sh [tag]
 ```
-(default tag `7.1.1-ukf`; the core/frontend checkouts and commits are overridable via `CORE_DIR`, `FRONTEND_DIR`, `CORE_COMMIT`, `FRONTEND_COMMIT`, see the script header). The other images (ClickHouse, session service, MongoDB, OpenResty) are pulled from their public registries and versioned in `.env`.
+(default tag `7.1.1-ukf`; the core source is cloned from `https://github.com/ukf-pauli/cbioportal-core`, branch `v7.1.1-ukf`; both are overridable via `CORE_REPO`, `CORE_REF`, plus `FRONTEND_DIR`, `FRONTEND_COMMIT`, see the script header). The other images (ClickHouse, session service, MongoDB, OpenResty) are pulled from their public registries and versioned in `.env`.
 
 ## Upgrading from previous releases
 

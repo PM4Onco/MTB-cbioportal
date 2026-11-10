@@ -36,7 +36,7 @@ services:
       KC_HOSTNAME_URL: http://localhost:18080
       KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
     volumes:
-      - ./config/keycloak/realm-mtb.json:/opt/keycloak/data/import/realm-mtb.json:ro
+      - ./config/keycloak:/opt/keycloak/data/import:ro
     ports:
       - "18080:8080"
     networks: [cbio-net]
