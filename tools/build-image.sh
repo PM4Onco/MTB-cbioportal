@@ -20,7 +20,7 @@ CORE_BASE="d549d6ff4065e348eded87c5878ac5d1af570a6e"
 # Branch-Name oder SHA; CI uebergibt branch-folgend den aufrufenden Branch.
 FRONTEND_COMMIT="${FRONTEND_COMMIT:-7.1.1-ukf}"
 BRANCH_ENV="${BRANCH_ENV:-master}"
-IMAGE="${IMAGE:-ghcr.io/pm4onco/cbioportal-image}"
+IMAGE="${IMAGE:-ghcr.io/ukf-pauli/cbioportal-image}"
 PUSH="${PUSH:-0}"
 TAG="${1:-7.1.1-ukf}"
 

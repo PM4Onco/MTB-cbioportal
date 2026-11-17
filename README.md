@@ -8,11 +8,16 @@ Installation is described [here](./INSTALL.md)
 
 ## Building images yourself
 
-The cBioPortal image (backend + importer + frontend bundle, published as the private GHCR package `ghcr.io/pm4onco/cbioportal-image`) is built by the GitHub Actions workflow `Build cbioportal image` (`.github/workflows/docker-build-image.yml`) on every push; on the release branch `7.1.1-ukf` it pushes the `7.1.1-ukf` tag (plus a `-core<sha>-fe<sha>` combo tag) to GHCR — `latest` is never touched. It can also be rebuilt locally, reproducibly from pinned core ref and frontend commit, with:
+The cBioPortal image (backend + importer + frontend bundle) is built **manually and locally** — there is no CI build, because the core source `PM4Onco/cbioportal-core` is private and the runner has no access to it. The build is reproducible from pinned core ref and frontend commit:
 ```
 tools/build-image.sh [tag]
 ```
-(default tag `7.1.1-ukf`; the core source is cloned from `https://github.com/PM4Onco/cbioportal-core`, branch `v7.1.1-ukf`, the frontend from `https://github.com/PM4Onco/cbioportal-frontend` on the matching branch; overridable via `CORE_REPO`, `CORE_REF`, `FRONTEND_REPO`, `FRONTEND_COMMIT`, `BRANCH_ENV`, see the script header). The other images (ClickHouse, session service, MongoDB, OpenResty) are pulled from their public registries and versioned in `.env`.
+(default tag `7.1.1-ukf`; the core source is cloned from `https://github.com/PM4Onco/cbioportal-core`, branch `v7.1.1-ukf`, the frontend from `https://github.com/PM4Onco/cbioportal-frontend` on the matching branch; overridable via `CORE_REPO`, `CORE_REF`, `FRONTEND_REPO`, `FRONTEND_COMMIT`, `BRANCH_ENV`, see the script header). By default the image is only loaded into the local Docker daemon; to build multi-arch (amd64+arm64) and push, use `PUSH=1 PLATFORMS=linux/amd64,linux/arm64 IMAGE=<registry path> REG_AUTH=<docker config.json> tools/build-image.sh <tag>`. The image is always tagged `<tag>` plus a `-core<sha>-fe<sha>` combo tag for traceability; `latest` is never touched. The other images (ClickHouse, session service, MongoDB, OpenResty) are pulled from their public registries and versioned in `.env`.
+
+Two GHCR packages are used and must not be conflated:
+
+- **Official deployment image:** `ghcr.io/pm4onco/cbioportal-image` — the package `INSTALL.md` and the deployment expect.
+- **Local/test image:** `ghcr.io/ukf-pauli/cbioportal-image` — a personal package used for building and deployment tests (e.g. the `7.1.1-ukf` tag published from a laptop). The local `.env` points at the test package; switch it to the official one once a corresponding image is published there.
 
 ## Upgrading from previous releases
 
@@ -43,7 +48,7 @@ The 6.x components FhirSpark, HAPI FHIR Server, PostgreSQL, Genome Nexus and Ens
 | Service | Path (behind OpenResty) | Port (dev overlay) | Image |
 | - | - | - | - |
 | OpenResty  | / | 8080 | openresty |
-| cBioPortal | / | 8081 | ghcr.io/pm4onco/cbioportal-image |
+| cBioPortal | / | 8081 | `DOCKER_IMAGE_CBIOPORTAL` (GHCR, see above) |
 | cBioPortal Debugger | - | 5005 | - |
 | ClickHouse | - | 8123, 9000 | clickhouse |
 | Session Service | - | - | cbioportal/session-service |
