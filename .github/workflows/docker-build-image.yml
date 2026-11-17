@@ -36,11 +36,9 @@ jobs:
       # hoehben (Default 7.1.1-ukf).
       RELEASE_BRANCH: 7.1.1-ukf
       RELEASE_TAG: ${{ vars.RELEASE_TAG || '7.1.1-ukf' }}
-      PUSH: ${{ github.ref_name == env.RELEASE_BRANCH && '1' || '0' }}
-      PLATFORMS: ${{ github.ref_name == env.RELEASE_BRANCH && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
-      # Das Frontend liest BRANCH_ENV beim Build (master/rc); der
-      # Release-Branch ist produktiv, alle anderen Branches sind rc.
-      BRANCH_ENV: ${{ github.ref_name == env.RELEASE_BRANCH && 'master' || 'rc' }}
+      # PUSH/PLATFORMS/BRANCH_ENV hängen vom Release-Branch ab, werden aber
+      # im Build-Step als Umgebungsvariablen exportiert: env.* ist in
+      # job-level env-Ausdrücken nicht referenzierbar.
       # Frontend-Ref: branch-folgend — der gleichnamige Branch im
       # Frontend-Repo muss existieren; Repo-Variable FRONTEND_COMMIT
       # (z. B. SHA) ueberschreibt temporär, z. B. fuer einen Test.
@@ -84,6 +82,13 @@ jobs:
 
       - name: Build and push image
         run: |
-          if [ "$GITHUB_REF_NAME" = "$RELEASE_BRANCH" ]; then TAG="$RELEASE_TAG"; else TAG="${GITHUB_REF_NAME//\//-}"; fi
+          # Release-Branch: Multi-Arch-Push mit RELEASE_TAG; alle anderen
+          # Branches nur lokal bauen (BRANCH_ENV=rc, single-Arch).
+          if [ "$GITHUB_REF_NAME" = "$RELEASE_BRANCH" ]; then
+            TAG="$RELEASE_TAG"; PUSH=1; PLATFORMS=linux/amd64,linux/arm64; BRANCH_ENV=master
+          else
+            TAG="${GITHUB_REF_NAME//\//-}"; PUSH=0; PLATFORMS=linux/amd64; BRANCH_ENV=rc
+          fi
+          export PUSH PLATFORMS BRANCH_ENV
           chmod +x tools/build-image.sh
           tools/build-image.sh "$TAG"
