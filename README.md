@@ -8,16 +8,16 @@ Installation is described [here](./INSTALL.md)
 
 ## Building images yourself
 
-The cBioPortal image (backend + importer + frontend bundle, published as the private GHCR package `ghcr.io/ukf-pauli/cbioportal-image`) can be rebuilt reproducibly from a pinned core fork ref and frontend commit with:
+The cBioPortal image (backend + importer + frontend bundle, published as the private GHCR package `ghcr.io/pm4onco/cbioportal-image`) is built by the GitHub Actions workflow `Build cbioportal image` (`.github/workflows/docker-build-image.yml`) on every push; on the release branch `7.1.1-ukf` it pushes the `7.1.1-ukf` tag (plus a `-core<sha>-fe<sha>` combo tag) to GHCR — `latest` is never touched. It can also be rebuilt locally, reproducibly from pinned core ref and frontend commit, with:
 ```
 tools/build-image.sh [tag]
 ```
-(default tag `7.1.1-ukf`; the core source is cloned from `https://github.com/ukf-pauli/cbioportal-core`, branch `v7.1.1-ukf`; both are overridable via `CORE_REPO`, `CORE_REF`, plus `FRONTEND_DIR`, `FRONTEND_COMMIT`, see the script header). The other images (ClickHouse, session service, MongoDB, OpenResty) are pulled from their public registries and versioned in `.env`.
+(default tag `7.1.1-ukf`; the core source is cloned from `https://github.com/PM4Onco/cbioportal-core`, branch `v7.1.1-ukf`, the frontend from `https://github.com/PM4Onco/cbioportal-frontend` on the matching branch; overridable via `CORE_REPO`, `CORE_REF`, `FRONTEND_REPO`, `FRONTEND_COMMIT`, `BRANCH_ENV`, see the script header). The other images (ClickHouse, session service, MongoDB, OpenResty) are pulled from their public registries and versioned in `.env`.
 
 ## Upgrading from previous releases
 
 When upgrading MTB-cBioPortal we *highly* suggest that you purge all volumes as it is likely that the database server is upgraded to a new major version and the cBioPortal seed database has been updated. 
-**This will result in a complete loss of all data that hasn't been backed up before!** As cBioPortal loads it's data from disk, you should still have this saved on disk. You can import the data again in the new version.
+**This will result in a complete loss of all data that hasn't been backed up before!** As cBioPortal loads its data from disk, you should still have this saved on disk. You can import the data again in the new version.
 
 The 7.1.x release uses ClickHouse instead of MariaDB. If you are upgrading from a 6.x release, the existing studies must be re-imported into the new ClickHouse database after the switch (cBioPortal data is stored in the ClickHouse volume, which cannot be migrated from MariaDB). For that please follow these steps:
 
@@ -43,7 +43,7 @@ The 6.x components FhirSpark, HAPI FHIR Server, PostgreSQL, Genome Nexus and Ens
 | Service | Path (behind OpenResty) | Port (dev overlay) | Image |
 | - | - | - | - |
 | OpenResty  | / | 8080 | openresty |
-| cBioPortal | / | 8081 | pm4onco/cbioportal |
+| cBioPortal | / | 8081 | ghcr.io/pm4onco/cbioportal-image |
 | cBioPortal Debugger | - | 5005 | - |
 | ClickHouse | - | 8123, 9000 | clickhouse |
 | Session Service | - | - | cbioportal/session-service |
@@ -60,7 +60,7 @@ Debugging of the backend can be done by attaching a debugger to it. Start cBioPo
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d cbioportal
 ```
 
-The JDWP agent is passed via `JAVA_TOOL_OPTIONS`, so no change to the container command is needed. For VisualStudio Code the MSKCC provides an [example configuration](https://github.com/cBioPortal/cbioportal/blob/master/README.md#%EF%B8%8F%EF%B8%8F-debugging).
+The JDWP agent is passed via `JAVA_TOOL_OPTIONS`, so no change to the container command is needed. For Visual Studio Code the MSKCC provides an [example configuration](https://github.com/cBioPortal/cbioportal/blob/master/README.md#%EF%B8%8F%EF%B8%8F-debugging).
 
 To test a local frontend build, use the frontend overlay `docker-compose.frontend.yml` (requires `FRONTEND_DIST` set in `.env`):
 

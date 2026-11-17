@@ -12,7 +12,7 @@ The following steps will assume the usage of Docker  without an explicitly state
 
 Using HTTPS also requires:
 
-1. A reverse proxy that will terminate the HTTPS of the cBioPortal instance (preferrably nginx)
+1. A reverse proxy that will terminate the HTTPS of the cBioPortal instance (preferably nginx)
 2. A DNS name for cBioPortal with a **full chain** webserver certificate
 
 Authentication with Keycloak is provided by a container that the deployment starts alongside cBioPortal (see "Add authentication (Keycloak)"); it works without HTTPS for testing, for production a reverse proxy with certificates in front of both services is strongly recommended.
@@ -45,7 +45,7 @@ docker login ghcr.io
 
 Start editing the `.env` file with a text editor. By default the installation points to the fixed 7.1.1 release (`DOCKER_IMAGE_CBIOPORTAL`). The image is built reproducibly from pinned core and frontend commits (see the "Building images yourself" section in [README.md](./README.md)).
 
-Using OncoKB will all annotations requires a token that can be obtained [here](https://www.oncokb.org/apiAccess). This must be entered into the `.env` file as well as the `#` before the parameter `ONCOKB_URL` removed.
+Using OncoKB for all annotations requires a token that can be obtained [here](https://www.oncokb.org/apiAccess). This must be entered into the `.env` file, and the `#` before the parameter `ONCOKB_URL` must be removed.
 
 By default MTB-cbioportal is exposed on port 8080, if that one is not available, please change it in the `.env` file.
 
@@ -61,7 +61,7 @@ Please set the ClickHouse password **now** in the `.env` file (`CLICKHOUSE_PASSW
 
 The script generates `config/application.properties` (with the ClickHouse credentials from `.env`) and extracts the ClickHouse schema, seed data and derived-table SQL from the pinned cBioPortal image. It requires Docker and internet access, as well as a `.env` file.
 
-The application's Docker container are running as `root` user. If you are not the `root` user, you may want to change the permissions of the `data/` directory with e.g.:
+The application's Docker containers are running as the `root` user. If you are not the `root` user, you may want to change the permissions of the `data/` directory with e.g.:
 
 ```
 sudo chmod 755 data/
@@ -82,7 +82,7 @@ COMPOSE_HTTP_TIMEOUT=200 docker compose up -d
 ```
 
 After the command is complete it should be possible to access cBioPortal on your machine using the webbrowser on the previously specified port.
-When using a remote machine and a rootless container environment like Podman, it might be neccessary to add the port to the firewall.
+When using a remote machine and a rootless container environment like Podman, it might be necessary to add the port to the firewall.
 
 ### 5. Importing data
 
@@ -155,7 +155,7 @@ server
 }
 ```
 
-Adding the reverse proxy doesn't require a restart of cBioPortal and should 
+Adding the reverse proxy doesn't require restarting cBioPortal.
 
 ## Add authentication (Keycloak)
 
