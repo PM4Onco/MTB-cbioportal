@@ -8,10 +8,12 @@ name: Build cbioportal image
 # der eigenen 7.1.1-ukf-Linie und ist vom allgemeinen Release-Zyklus
 # unabhaengig; "latest" wird nie beruehrt.
 #
-# Laeuft ohne Repo-Secrets: Die Quellen (PM4Onco/cbioportal-core,
-# PM4Onco/cbioportal-frontend) sind oeffentlich und werden ohne Token
-# geklont; der Push auf das GHCR-Package pm4onco/cbioportal-image vom
-# Release-Branch laeuft ueber das eingebaute GITHUB_TOKEN (permissions: packages: write).
+# Klon der Quellen: PM4Onco/cbioportal-core ist privat und wird mit dem
+# Laufzeit-GITHUB_TOKEN (contents: read) authentifiziert;
+# PM4Onco/cbioportal-frontend ist oeffentlich. github-actions[bot] muss die
+# private Core-Quelle lesen koennen. Der Push auf das GHCR-Package
+# pm4onco/cbioportal-image vom Release-Branch laeuft ueber das eingebaute
+# GITHUB_TOKEN (permissions: packages: write). Kein zusatzliches Repo-Secret.
 
 on:
   push:
@@ -83,6 +85,10 @@ jobs:
 
       - name: Build and push image
         run: |
+          # Das Skript klont Core/Frontend via 'git clone https://github.com/…'.
+          # Der Core ist privat; daher die github.com-Klone mit dem Laufzeit-
+          # GITHUB_TOKEN (contents: read) authentifizieren.
+          git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
           # Release-Branch: Multi-Arch-Push mit RELEASE_TAG; alle anderen
           # Branches nur lokal bauen (BRANCH_ENV=rc, single-Arch).
           if [ "$GITHUB_REF_NAME" = "$RELEASE_BRANCH" ]; then
